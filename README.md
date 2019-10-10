@@ -117,12 +117,12 @@ GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
 General help using GNU software: <http://www.gnu.org/gethelp/>
 For complete documentation, run: info coreutils 'cat invocation'
 -------------------------------------------------------
-OPTIONS:
-    option > -s : 222
-    option > -n : 111
-SWITCHS:
-    switch > -A : 1
-    switch > -v : 2
-PARAMS:
-    param > 000
+_OPTIONS_:
+  -s = 222
+  -n = 111
+_SWITCHS_:
+  -A = 1
+  -v = 2
+_PARAMS_:
+  [0] : 000
 ```
