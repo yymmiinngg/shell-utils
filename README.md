@@ -1,7 +1,7 @@
 # shell-utils
 Shell 工具集
 
-# 安装方法
+# 引入
 在你的shell程序代码目录下
 ```
 git clone git@github.com:yymmiinngg/shell-utils.git

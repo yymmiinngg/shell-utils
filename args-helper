@@ -261,6 +261,9 @@ function _findOutSwitch() {
 # 打印帮助文档
 ###-------------------------------------------------------------------
 function printHelp() {
+    if [ -n "$1" ]; then
+        echo "$1"
+    fi
     printf "$argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
 }
 
