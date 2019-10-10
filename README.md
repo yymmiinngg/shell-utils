@@ -2,16 +2,19 @@
 Shell 工具集
 
 # 引入
-在你的shell程序代码目录下
+在你的shell程序代码目录下，将shell-utils以子模块的形式添加到程序中
 ```
-git clone git@github.com:yymmiinngg/shell-utils.git
+git submodule add git@github.com:yymmiinngg/shell-utils.git shell-utils
 ```
+
 ## 目录结构
 假设你的shell程序目录为src
 ```
 src
   |-- shell-utils
      |-- args-helper
+  |-- .gitignore
+  |-- .gitmodules
   |-- cmd1.sh
   |-- cmd2.sh
 ```
