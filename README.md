@@ -66,7 +66,7 @@ _ShowVersion_="--version"
 _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
 
 # 引入工具文件
-source shell-utils/args-helper
+source `dirname $0`/shell-utils/args-helper
 
 echo -------------------------------------------------------
 # 输出版本信息

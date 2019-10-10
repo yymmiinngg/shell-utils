@@ -34,7 +34,7 @@ _ArgsMeta_="
 _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
 
 # 引入工具文件
-source args-helper
+source `dirname $0`/args-helper
 
 echo -------------------------------------------------------
 # 输出版本信息
