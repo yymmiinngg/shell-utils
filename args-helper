@@ -1,0 +1,401 @@
+#!/bin/sh
+
+######################################################################
+### 参数定义
+######################################################################
+
+# --------------------------------------------------------------------
+# [_ArgsMeta_]
+#
+# 参数元数据，用于描述参数，示例如下：
+# _ArgsMeta_="
+# # Usage: cat [OPTION]... [FILE]...
+# # Concatenate FILE(s), or standard input, to standard output.
+# #
+# ?   -A, --show-all          ### equivalent to -vET
+# +   -b, --number-nonblank   ### number nonempty output lines
+# ?   -e                      ### equivalent to -vE
+# ?   -E, --show-ends         ### display $ at end of each line
+# +   -n, --number            ### number all output lines
+# +   -s, --squeeze-blank     ### suppress repeated empty output lines
+# ?   -t                      ### equivalent to -vT
+# ?   -T, --show-tabs         ### display TAB characters as ^I
+# ?   -u                      ### (ignored)
+# ?   -v, --show-nonprinting  ### use ^ and M- notation, except for LFD and TAB
+# ?       --help              ### display this help and exit
+# ?       --version           ### output version information and exit
+# #
+# # With no FILE, or when FILE is -, read standard input.
+# #
+# # Examples:
+# #   cat f - g  Output f's contents, then standard input, then g's contents.
+# #   cat        Copy standard input to standard output.
+# #
+# # Report cat bugs to bug-coreutils@gnu.org
+# # GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
+# # General help using GNU software: <http://www.gnu.org/gethelp/>
+# # For complete documentation, run: info coreutils 'cat invocation'
+# "
+#
+# 格式说明：
+# <${optionType}>_<${optionItem}>[,_${optionItemAliases}]_<###>_[${optionDescription}]
+# optionType: 选项的类型，要顶格
+#     + 值选项，例如："tail -n 1000 console.out" 中 1000 是 -n 的值
+#     - 开关选项，例如："ls -a ./" 中 -a 是开关选项
+#     # 描述信息，只用于显示，无其它作用
+# optionItem: 通常是以“-”开头的参数名（简写），如："tail -n 1000 console.out" 中 -n 是参数名
+# optionItemAliases: 经常作为 optionItem 的别名，如："tail -n 1000 console.out" 也可以写成 "tail --lines=1000 console.out"
+# optionDescription: 对参数项的描述
+# 注意：
+#     optionItem 和 optionItemAliases 可以简略其一，也可调换位置
+#     <> 表示必须，[] 表示可选，_ 表示空格（1或多个）
+#
+# 以上示例调用 printArgs 输出结果为：
+# Usage: cat [OPTION]... [FILE]...
+# Concatenate FILE(s), or standard input, to standard output.
+#
+#   -A, --show-all           equivalent to -vET
+#   -b, --number-nonblank    number nonempty output lines
+#   -e                       equivalent to -vE
+#   -E, --show-ends          display $ at end of each line
+#   -n, --number             number all output lines
+#   -s, --squeeze-blank      suppress repeated empty output lines
+#   -t                       equivalent to -vT
+#   -T, --show-tabs          display TAB characters as ^I
+#   -u                       (ignored)
+#   -v, --show-nonprinting   use ^ and M- notation, except for LFD and TAB
+#       --help               display this help and exit
+#       --version            output version information and exit
+#
+# With no FILE, or when FILE is -, read standard input.
+#
+# Examples:
+#   cat f - g  Output f's contents, then standard input, then g's contents.
+#   cat        Copy standard input to standard output.
+#
+# Report cat bugs to bug-coreutils@gnu.org
+# GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
+# General help using GNU software: <http://www.gnu.org/gethelp/>
+# For complete documentation, run: info coreutils 'cat invocation'
+
+# --------------------------------------------------------------------
+# [_ShowHelp_]
+# 
+# 显示帮助信息的参数项是什么，例如：
+# _ShowHelp_="--help" 配置后，输入 "cmd --help" 显示指令 "cmd" 的帮助信息
+# 需要确保的是 _ArgsMeta_ 有 一个同名的开关项，如：
+# "? --help ### display this help and exit "
+
+# --------------------------------------------------------------------
+# [_ShowVersion_]
+#
+# 显示版本信息的参数项是什么，例如：
+# _ShowVersion_="--version" 配置后，输入 "cmd --version" 显示指令 "cmd" 
+# 的版本信息(_VersionInfo_)
+
+# --------------------------------------------------------------------
+# [_VersionInfo_]
+#
+# 指令的版本信息，例如：
+# _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
+
+######################################################################
+### 声明 和 主体
+######################################################################
+readonly _NULL_="_NULL_"
+
+# 命令入参
+inputArgs=()
+
+# 参数说明
+argsMeta="
+Usage:
+?   --help      ### display this help and exit
+?   --version   ### output version information and exit
+"
+showHelp="--help"
+showVersion="--version"
+versionInfo="no version information"
+
+# 选项 和 值
+declare -A __options=()
+
+# 开关列表
+declare -A __switchs=()
+
+# 所有 短选项 和 长选项 的绑定关系
+# -A=--show-all 正向绑定
+# --show-all=A  反向绑定
+# -e            只有短选项
+# --help        只有长选项
+declare -A __metaOptions=()
+
+# 选项是否有值
+# -e=-          没有值
+# -n=+          有值
+# --help=-      没有值
+declare -A __metaOptionType=()
+
+# 选项的说明
+declare -A __metaOptionDesc=()
+
+###-------------------------------------------------------------------
+# 去除字符串前后的空格
+###-------------------------------------------------------------------
+function trim() {
+    echo " $1 " | sed -e 's/^[ \t]*//g' | sed -e 's/[ \t]*$//g'
+}
+
+###-------------------------------------------------------------------
+# 根据参数的描述信息，初始化参数
+###-------------------------------------------------------------------
+# 输入的参数
+# __metaDocument
+#---------------------------------------------------------------------
+# 运行后 将填充以下变量
+# __options __switchs __metaOptions __metaOptionType __metaOptionDesc
+#---------------------------------------------------------------------
+function _initArgsMeta() {
+    lines=()
+    eval $( printf "$argsMeta" | cat | sed s/\\\"/\\\\\"/g | awk '{ printf("lines[${#lines[*]}]=\"%s\"\n",$0); }' )
+
+    for((i=0;i<=${#lines[*]};i++)); do 
+        line="${lines[$i]}"
+        # echo "$line"
+        
+        optionType="${line%% *}"
+        lineElse="${line#* }"
+        if [ "$optionType" == "#" ]; then
+            continue;
+        fi
+        #echo 1 $optionType " | " $lineElse
+
+        optionSec="${lineElse%%###*}"
+        desc="${lineElse#*###}"
+        #echo 2 $optionSec " | " $desc
+
+        option=`trim "${optionSec%%,*}"`
+        optionAliases=`trim "${optionSec#*,}"`
+        #echo 3 ">$option<" = ">$optionAliases<"
+        #echo 
+
+        if [ "$option" == "$optionAliases" ]; then 
+            optionAliases=""
+        fi
+
+        if [ ! -z "$option" ]; then
+            __metaOptions["$option"]="$optionAliases"
+            __metaOptionType["$option"]="$optionType"
+            __metaOptionDesc["$option"]="$desc"
+        fi
+
+        if [ ! -z "$optionAliases" ]; then
+            __metaOptions["$optionAliases"]="$option"
+            __metaOptionType["$optionAliases"]="$optionType"
+        fi
+
+    done
+}
+
+###-------------------------------------------------------------------
+# 从参数中找出指定的参数并移除(重复情况下取最后一个)
+###-------------------------------------------------------------------
+# 输入值
+# __name=""         # 指定的参数名称
+#---------------------------------------------------------------------
+# 输出值
+# __return=$_NULL_  # 选项的值
+#---------------------------------------------------------------------
+function _findOutOption() {
+    _returnNext=0
+    _idx=-1
+    for item in "${inputArgs[@]}"; do 
+        _idx=$[$_idx + 1]
+        if [ $_returnNext -eq 1 ]; then
+            _returnNext=0
+            __return="$item"
+            inputArgs[$_idx]=""
+            continue
+        fi
+        if [ "$item" = "$__name" ]; then
+            _returnNext=1
+            inputArgs[$_idx]=""
+            continue
+        fi
+        _key=${item%%=*}
+        _value=${item#*=}
+        if [ "$_key" = "$__name" ]; then
+            # echo  "${inputArgs[@]}"
+            # echo $_key "==============" "$_value" $_idx
+            __return="$_value"
+            inputArgs[$_idx]=""
+            continue
+        fi
+    done
+}
+
+###-------------------------------------------------------------------
+# 从参数中找出指定的开关并移除(移除所有重复的))
+###-------------------------------------------------------------------
+# 输入值
+# __name=""         # 指定的参数名称
+#---------------------------------------------------------------------
+# 输出值
+# __return=0        # 0 表示未找到，+n表示找到n个
+#---------------------------------------------------------------------
+function _findOutSwitch() {
+    _idx=-1
+    _count=0
+    for item in "${inputArgs[@]}"; do 
+        _idx=$[$_idx + 1]
+        if [ "$item" = "$__name" ]; then
+            inputArgs[$_idx]=""
+            _count=$[$_count + 1]
+            continue
+        fi
+    done
+    __return=$_count
+}
+
+###-------------------------------------------------------------------
+# 打印帮助文档
+###-------------------------------------------------------------------
+function printHelp() {
+    printf "$argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
+}
+
+###-------------------------------------------------------------------
+# 打印版本
+###-------------------------------------------------------------------
+function printVersion() {
+    echo "$versionInfo";
+}
+
+###-------------------------------------------------------------------
+# 打印参数
+###-------------------------------------------------------------------
+function printArgs() {
+    echo OPTIONS:
+    for key in "${!_OPTIONS_[@]}"; do
+        echo "    option >" $key : ${_OPTIONS_["$key"]}
+    done
+
+    echo SWITCHS:
+    for key in "${!_SWITCHS_[@]}"; do
+        echo "    switch >" $key : ${_SWITCHS_["$key"]}
+    done
+
+    echo PARAMS:
+    for p in "${_PARAMS_[@]}"; do
+        echo "    param >" $p
+    done
+}
+
+######################################################################
+### 输入
+######################################################################
+
+inputArgs=() # 命令的参数
+{ # 参数清洗
+    for((i=1;i<=$#;i++))
+    do
+        eval '_tmp_=${'$i'}'
+        inputArgs[${#inputArgs[@]}]="$_tmp_"
+    done
+}
+
+# 配置参数
+if [ -n "$_ArgsMeta_" ]; then
+    argsMeta="$_ArgsMeta_"
+fi
+if [ -n "$_ShowHelp_" ]; then
+    showHelp="$_ShowHelp_"
+fi
+if [ -n "$_ShowVersion_" ]; then
+    showVersion="$_ShowVersion_"
+fi
+if [ -n "$_VersionInfo_" ]; then
+    versionInfo="$_VersionInfo_"
+fi
+
+######################################################################
+### 处理
+######################################################################
+
+{ # call _initArgsMeta()
+    _initArgsMeta "$argsMeta"
+}
+for key in "${!__metaOptions[@]}"; do
+    if [ "+" = "${__metaOptionType["$key"]}" ]; then
+        { # call _findOutOption()
+            __name="$key";
+            __return=$_NULL_;
+            _findOutOption
+        }
+        val="$__return"
+        if [ "$_NULL_" = "$val" ]; then 
+            continue;
+        fi
+        __options["$key"]="$val"
+    elif [ "?" = "${__metaOptionType["$key"]}" ]; then
+        { # call _findOutSwitch()
+            __name="$key"; 
+            __return=0;
+            _findOutSwitch
+        }
+        val=$__return
+        if [ 0 -eq $val ]; then 
+            continue;
+        fi
+        __switchs["$key"]=$val
+    fi
+done
+
+# for key in $(echo ${!__metaOptions[*]}); do
+#     echo 1====== ">$key<" : ">${__metaOptions["$key"]}<"
+# done
+
+# echo
+# for key in $(echo ${!__metaOptionType[*]}); do
+#     echo 2====== ">$key<" : ">${__metaOptionType["$key"]}<"
+# done
+
+# echo
+# for key in $(echo ${!__metaOptionDesc[*]}); do
+#     echo 3====== ">$key<" : ">${__metaOptionDesc["$key"]}<"
+# done
+
+######################################################################
+### 输出
+######################################################################
+
+declare -A _OPTIONS_=()
+for key in "${!__options[@]}"; do
+    _OPTIONS_["$key"]="${__options["$key"]}"
+done
+
+declare -A _SWITCHS_=()
+for key in "${!__switchs[@]}"; do
+    _SWITCHS_["$key"]="${__switchs["$key"]}"
+done
+
+declare -a _PARAMS_=()
+for item in "${inputArgs[@]}"; do
+    if [ ! -z "$item" ]; then
+        _PARAMS_[${#_PARAMS_[@]}]="$item"
+    fi
+done
+
+readonly _OPTIONS_           # [字典类型] 参数项 和 值
+readonly _SWITCHS_           # [字典类型] 开关项 和 次数
+readonly _PARAMS_            # [数组类型] 参数值
+
+if [ -n "${_SWITCHS_["$showHelp"]}" ]; then
+    printHelp 
+    exit 0;
+fi
+
+if [ -n "${_SWITCHS_["$showVersion"]}" ]; then
+    printVersion
+    exit 0;
+fi
