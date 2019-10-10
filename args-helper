@@ -289,12 +289,12 @@ function printVersion() {
 function printArgs() {
     echo _OPTIONS_:
     for key in "${!_OPTIONS_[@]}"; do
-        echo "  '$key' = ${_OPTIONS_["$key"]}"
+        echo "  $key = ${_OPTIONS_["$key"]}"
     done
 
     echo _SWITCHS_:
     for key in "${!_SWITCHS_[@]}"; do
-        echo "  '$key' = ${_SWITCHS_["$key"]}"
+        echo "  $key = ${_SWITCHS_["$key"]}"
     done
 
     echo _PARAMS_:
