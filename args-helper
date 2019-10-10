@@ -87,6 +87,13 @@
 # "? --help ### display this help and exit "
 
 # --------------------------------------------------------------------
+# [_defaultHelpMeta_]
+# 
+# 启用默认的帮助信息（在_ArgsMeta_中追加），例如：
+# _defaultHelpMeta_="yes" 配置后，输入 "cmd --help" 将会追加显示默认的帮助
+# 信息
+
+# --------------------------------------------------------------------
 # [_ShowVersion_]
 #
 # 显示版本信息的参数项是什么，例如：
@@ -109,9 +116,9 @@ inputArgs=()
 
 # 参数说明
 argsMeta="
-Help:
-?   --help      ### display this help and exit
-?   --version   ### output version information and exit
+helps:
+?   --help    ### display this help and exit
+?   --version ### output version information and exit
 "
 showHelp="--help"
 showVersion="--version"
@@ -311,10 +318,11 @@ inputArgs=() # 命令的参数
 
 # 配置参数
 if [ -n "$_ArgsMeta_" ]; then
-    argsMeta="
-$_ArgsMeta_
-$argsMeta
-"
+    if [ "yes" = "$_DefaultHelpMeta_" ]; then
+        argsMeta="$_ArgsMeta_\n$argsMeta"
+    else
+        argsMeta="$_ArgsMeta_"
+    fi
 fi
 if [ -n "$_ShowHelp_" ]; then
     showHelp="$_ShowHelp_"
