@@ -117,8 +117,8 @@ inputArgs=()
 # 参数说明
 argsMeta="
 helps:
-?   --help    ### display this help and exit
-?   --version ### output version information and exit
+?   --help      ### display this help and exit
+?   --version   ### output version information and exit
 "
 showHelp="--help"
 showVersion="--version"
