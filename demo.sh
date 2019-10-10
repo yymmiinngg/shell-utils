@@ -30,10 +30,6 @@ _ArgsMeta_="
 # For complete documentation, run: info coreutils 'cat invocation'
 "
 
-# 显示帮助信息的参数
-_ShowHelp_="--help"
-# 显示版本信息的参数
-_ShowVersion_="--version"
 # 版本信息
 _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
 
