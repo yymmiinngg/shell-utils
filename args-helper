@@ -109,7 +109,7 @@ inputArgs=()
 
 # 参数说明
 argsMeta="
-Usage:
+Help:
 ?   --help      ### display this help and exit
 ?   --version   ### output version information and exit
 "
@@ -311,7 +311,10 @@ inputArgs=() # 命令的参数
 
 # 配置参数
 if [ -n "$_ArgsMeta_" ]; then
-    argsMeta="$_ArgsMeta_"
+    argsMeta="
+$_ArgsMeta_
+$argsMeta
+"
 fi
 if [ -n "$_ShowHelp_" ]; then
     showHelp="$_ShowHelp_"
