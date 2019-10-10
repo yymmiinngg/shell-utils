@@ -287,20 +287,20 @@ function printVersion() {
 # 输出参数
 ###-------------------------------------------------------------------
 function printArgs() {
-    echo OPTIONS:
+    echo _OPTIONS_:
     for key in "${!_OPTIONS_[@]}"; do
-        echo "  $key = ${_OPTIONS_["$key"]}"
+        echo "  '$key' = ${_OPTIONS_["$key"]}"
     done
 
-    echo SWITCHS:
+    echo _SWITCHS_:
     for key in "${!_SWITCHS_[@]}"; do
-        echo "  $key : ${_SWITCHS_["$key"]}"
+        echo "  '$key' = ${_SWITCHS_["$key"]}"
     done
 
-    echo PARAMS:
+    echo _PARAMS_:
     _idx=0
     for p in "${_PARAMS_[@]}"; do
-        echo "  $_idx : $p"
+        echo "  [$_idx] : $p"
         _idx=$[$_idx + 1]
     done
 }
