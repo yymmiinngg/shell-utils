@@ -132,7 +132,7 @@ declare -A __switchs=()
 
 # 所有 短选项 和 长选项 的绑定关系
 # -A=--show-all 正向绑定
-# --show-all=A  反向绑定
+# --show-all=-A 反向绑定
 # -e            只有短选项
 # --help        只有长选项
 declare -A __metaOptions=()
@@ -344,6 +344,7 @@ fi
     _initArgsMeta "$argsMeta"
 }
 for key in "${!__metaOptions[@]}"; do
+    keyAliases="${__metaOptions["$key"]}"
     if [ "+" = "${__metaOptionType["$key"]}" ]; then
         { # call _findOutOption()
             __name="$key";
@@ -355,6 +356,9 @@ for key in "${!__metaOptions[@]}"; do
             continue;
         fi
         __options["$key"]="$val"
+        if [ -n "$keyAliases" ]; then
+            __options["$keyAliases"]="$val"
+        fi
     elif [ "?" = "${__metaOptionType["$key"]}" ]; then
         { # call _findOutSwitch()
             __name="$key"; 
@@ -366,6 +370,9 @@ for key in "${!__metaOptions[@]}"; do
             continue;
         fi
         __switchs["$key"]=$val
+        if [ -n "$keyAliases" ]; then
+            __switchs["$keyAliases"]="$val"
+        fi
     fi
 done
 
