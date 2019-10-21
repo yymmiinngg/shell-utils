@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# 配置参数元数据
+# ###########################################################
+# 使用前配置 
 _ArgsMeta_="
+# For example cat:
+# 
 # Usage: cat [OPTION]... [FILE]...
 # Concatenate FILE(s), or standard input, to standard output.
 #
@@ -15,9 +18,9 @@ _ArgsMeta_="
 ?   -T, --show-tabs         ### display TAB characters as ^I
 ?   -u                      ### (ignored)
 ?   -v, --show-nonprinting  ### use ^ and M- notation, except for LFD and TAB
+?   -w, --hello-world       ### output hello world and exit
 ?       --help              ### display this help and exit
 ?       --version           ### output version information and exit
-#
 # With no FILE, or when FILE is -, read standard input.
 #
 # Examples:
@@ -27,23 +30,27 @@ _ArgsMeta_="
 # Report cat bugs to bug-coreutils@gnu.org
 # GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
 # General help using GNU software: <http://www.gnu.org/gethelp/>
-# For complete documentation, run: info coreutils 'cat invocation'
-"
+# For complete documentation, run: info coreutils 'cat invocation'"  # 参数元数据配置
+_ShowHelp_="--help"  # 输出帮助信息的指令参数(可省略)
+_DefaultHelpMeta_="no"  # 因为_ArgsMeta_中已经配置了--help和--version，无须使用默认配置
+_ShowVersion_="--version"  # 输出版本信息的指令参数（可省略）
+_VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"  # 自定义版本信息（可省略）
+_StrictParam_="no"  # 不使用严格参数（支持以"-"开头的参数）
+_LeastParamCount_=0  # 参数数量不得少于1个（0表示不验证最少数量）
 
-# 版本信息
-_VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
-
-# 引入工具文件
+# ###########################################################
+# 引入工具文件（这里按实际目录结构引入）
 source `dirname $0`/args-helper
 
-echo -------------------------------------------------------
-# 输出版本信息
-printVersion
+# ###########################################################
+# 使用
+if [ ${_SWITCHS_['--hello-world']} ]; then
+    echo -------------------------------------------------------
+    _PrintVersion_ # 输出版本信息
 
-echo -------------------------------------------------------
-# 输出帮助信息
-printHelp
+    echo -------------------------------------------------------
+    _PrintHelp_    # 输出帮助信息
 
-echo -------------------------------------------------------
-# 输出参数信息
-printArgs
+    echo -------------------------------------------------------
+    _PrintArgs_    # 输出参数信息
+fi

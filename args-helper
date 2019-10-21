@@ -50,7 +50,7 @@
 #     optionItem 和 optionItemAliases 可以简略其一，也可调换位置
 #     <> 表示必须，[] 表示可选，_ 表示空格（1或多个）
 #
-# 以上示例调用 printArgs 输出结果为：
+# 以上示例调用 _PrintArgs_ 输出结果为：
 # Usage: cat [OPTION]... [FILE]...
 # Concatenate FILE(s), or standard input, to standard output.
 #
@@ -87,10 +87,10 @@
 # "? --help ### display this help and exit "
 
 # --------------------------------------------------------------------
-# [_defaultHelpMeta_]
+# [_DefaultHelpMeta_]
 # 
 # 启用默认的帮助信息（在_ArgsMeta_中追加），例如：
-# _defaultHelpMeta_="yes" 配置后，输入 "cmd --help" 将会追加显示默认的帮助
+# _DefaultHelpMeta_="yes" 配置后，输入 "cmd --help" 将会追加显示默认的帮助
 # 信息
 
 # --------------------------------------------------------------------
@@ -106,50 +106,63 @@
 # 指令的版本信息，例如：
 # _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
 
+# --------------------------------------------------------------------
+# [_StrictParam_]
+# 
+# 是否开启严格参数(yes|no)，例如：
+# _StrictParam_="yes" 将会视“-”开头的参数为非法，这样可以避免写错选项名称
+
+# --------------------------------------------------------------------
+# [_LeastParamCount_]
+# 
+# 参数个数下限(0|N)，例如：
+# _LeastParamCount_=0 表示不限参数数量，n表示至少需要输入n个参数
+
+
 ######################################################################
 ### 声明 和 程序主体
 ######################################################################
-readonly _NULL_="_NULL_"
+readonly AHC_NULL="_AHC_NULL_"
 
 # 命令入参
-inputArgs=()
+ahv_inputArgs=()
 
-# 参数说明
-argsMeta="
-helps:
+# 参数的默认值
+ahv_argsMeta="helps:
 ?   --help      ### display this help and exit
-?   --version   ### output version information and exit
-"
-showHelp="--help"
-showVersion="--version"
-versionInfo="no version information"
+?   --version   ### output version information and exit"
+ahv_showHelp="--help"
+ahv_showVersion="--version"
+ahv_versionInfo="no version information"
+ahv_strictParam="yes"
+ahv_leastParamCount=0
 
 # 选项 和 值
-declare -A __options=()
+declare -A ahv_options=()
 
 # 开关列表
-declare -A __switchs=()
+declare -A ahv_switchs=()
 
 # 所有 短选项 和 长选项 的绑定关系
 # -A=--show-all 正向绑定
 # --show-all=-A 反向绑定
 # -e            只有短选项
 # --help        只有长选项
-declare -A __metaOptions=()
+declare -A ahv_metaOptions=()
 
 # 选项是否有值
 # -e=-          没有值
 # -n=+          有值
 # --help=-      没有值
-declare -A __metaOptionType=()
+declare -A ahv_metaOptionType=()
 
 # 选项的说明
-declare -A __metaOptionDesc=()
+declare -A ahv_metaOptionDesc=()
 
 ###-------------------------------------------------------------------
 # 去除字符串前后的空格
 ###-------------------------------------------------------------------
-function trim() {
+function ahf_trim() {
     echo " $1 " | sed -e 's/^[ \t]*//g' | sed -e 's/[ \t]*$//g'
 }
 
@@ -160,45 +173,41 @@ function trim() {
 # __metaDocument
 #---------------------------------------------------------------------
 # 运行后 将填充以下变量
-# __options __switchs __metaOptions __metaOptionType __metaOptionDesc
+# ahv_options ahv_switchs ahv_metaOptions ahv_metaOptionType ahv_metaOptionDesc
 #---------------------------------------------------------------------
-function _initArgsMeta() {
-    lines=()
-    eval $( printf "$argsMeta" | cat | sed s/\\\"/\\\\\"/g | awk '{ printf("lines[${#lines[*]}]=\"%s\"\n",$0); }' )
+function ahf_initArgsMeta() {
+    local aht_lines=()
+    eval $( printf "$ahv_argsMeta" | cat | sed s/\\\"/\\\\\"/g | awk '{ printf("aht_lines[${#aht_lines[*]}]=\"%s\"\n",$0); }' )
 
-    for((i=0;i<=${#lines[*]};i++)); do 
-        line="${lines[$i]}"
-        # echo "$line"
+    for((i=0;i<=${#aht_lines[*]};i++)); do 
+        local aht_line="${aht_lines[$i]}"
+        # echo "$aht_line"
         
-        optionType="${line%% *}"
-        lineElse="${line#* }"
-        if [ "$optionType" == "#" ]; then
+        local aht_optionType="${aht_line%% *}"
+        local aht_lineElse="${aht_line#* }"
+        if [ "$aht_optionType" == "#" ]; then
             continue;
         fi
-        #echo 1 $optionType " | " $lineElse
 
-        optionSec="${lineElse%%###*}"
-        desc="${lineElse#*###}"
-        #echo 2 $optionSec " | " $desc
+        local aht_optionSec="${aht_lineElse%%###*}"
+        local aht_optionDesc="${aht_lineElse#*###}"
 
-        option=`trim "${optionSec%%,*}"`
-        optionAliases=`trim "${optionSec#*,}"`
-        #echo 3 ">$option<" = ">$optionAliases<"
-        #echo 
+        local aht_option=`ahf_trim "${aht_optionSec%%,*}"`
+        local aht_optionAliases=`ahf_trim "${aht_optionSec#*,}"`
 
-        if [ "$option" == "$optionAliases" ]; then 
-            optionAliases=""
+        if [ "$aht_option" == "$aht_optionAliases" ]; then 
+            aht_optionAliases=""
         fi
 
-        if [ ! -z "$option" ]; then
-            __metaOptions["$option"]="$optionAliases"
-            __metaOptionType["$option"]="$optionType"
-            __metaOptionDesc["$option"]="$desc"
+        if [ -n "$aht_option" ]; then
+            ahv_metaOptions["$aht_option"]="$aht_optionAliases"
+            ahv_metaOptionType["$aht_option"]="$aht_optionType"
+            ahv_metaOptionDesc["$aht_option"]="$aht_optionDesc"
         fi
 
-        if [ ! -z "$optionAliases" ]; then
-            __metaOptions["$optionAliases"]="$option"
-            __metaOptionType["$optionAliases"]="$optionType"
+        if [ -n "$aht_optionAliases" ]; then
+            ahv_metaOptions["$aht_optionAliases"]="$aht_option"
+            ahv_metaOptionType["$aht_optionAliases"]="$aht_optionType"
         fi
 
     done
@@ -208,34 +217,34 @@ function _initArgsMeta() {
 # 从参数中找出指定的参数并移除(重复情况下取最后一个)
 ###-------------------------------------------------------------------
 # 输入值
-# __name=""         # 指定的参数名称
+# _name_=""           # 指定的参数名称
 #---------------------------------------------------------------------
 # 输出值
-# __return=$_NULL_  # 选项的值
+# _return_=$AHC_NULL  # 选项的值
 #---------------------------------------------------------------------
-function _findOutOption() {
-    _returnNext=0
-    _idx=-1
-    for item in "${inputArgs[@]}"; do 
-        _idx=$[$_idx + 1]
-        if [ $_returnNext -eq 1 ]; then
-            _returnNext=0
-            __return="$item"
-            inputArgs[$_idx]=""
+function avf_findOutOption() {
+    local aht_returnNext=0
+    local aht_idx=-1
+    for item in "${ahv_inputArgs[@]}"; do 
+        aht_idx=$[$aht_idx + 1]
+        if [ $aht_returnNext -eq 1 ]; then
+            aht_returnNext=0
+            _return_="$item"
+            ahv_inputArgs[$aht_idx]=""
             continue
         fi
-        if [ "$item" = "$__name" ]; then
-            _returnNext=1
-            inputArgs[$_idx]=""
+        if [ "$item" = "$_name_" ]; then
+            aht_returnNext=1
+            ahv_inputArgs[$aht_idx]=""
             continue
         fi
-        _key=${item%%=*}
-        _value=${item#*=}
-        if [ "$_key" = "$__name" ]; then
-            # echo  "${inputArgs[@]}"
-            # echo $_key "==============" "$_value" $_idx
-            __return="$_value"
-            inputArgs[$_idx]=""
+        local aht_key=${item%%=*}
+        local aht_value=${item#*=}
+        if [ "$aht_key" = "$_name_" ]; then
+            # echo  "${ahv_inputArgs[@]}"
+            # echo $aht_key "==============" "$aht_value" $aht_idx
+            _return_="$aht_value"
+            ahv_inputArgs[$aht_idx]=""
             continue
         fi
     done
@@ -245,23 +254,23 @@ function _findOutOption() {
 # 从参数中找出指定的开关并移除(移除所有重复的))
 ###-------------------------------------------------------------------
 # 输入值
-# __name=""         # 指定的参数名称
+# _name_=""         # 指定的参数名称
 #---------------------------------------------------------------------
 # 输出值
-# __return=0        # 0 表示未找到，+n表示找到n个
+# _return_=0        # 0 表示未找到，+n表示找到n个
 #---------------------------------------------------------------------
-function _findOutSwitch() {
-    _idx=-1
-    _count=0
-    for item in "${inputArgs[@]}"; do 
-        _idx=$[$_idx + 1]
-        if [ "$item" = "$__name" ]; then
-            inputArgs[$_idx]=""
-            _count=$[$_count + 1]
+function ahf_findOutSwitch() {
+    local aht_idx=-1
+    local aht_count=0
+    for item in "${ahv_inputArgs[@]}"; do 
+        aht_idx=$[$aht_idx + 1]
+        if [ "$item" = "$_name_" ]; then
+            ahv_inputArgs[$aht_idx]=""
+            aht_count=$[$aht_count + 1]
             continue
         fi
     done
-    __return=$_count
+    _return_=$aht_count
 }
 
 ###-------------------------------------------------------------------
@@ -269,39 +278,39 @@ function _findOutSwitch() {
 ###-------------------------------------------------------------------
 # $1: 提示信息
 #---------------------------------------------------------------------
-function printHelp() {
+function _PrintHelp_() {
     if [ -n "$1" ]; then
         echo "$1"
     fi
-    printf "$argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
+    printf "$ahv_argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
 }
 
 ###-------------------------------------------------------------------
 # 输出版本
 ###-------------------------------------------------------------------
-function printVersion() {
-    echo "$versionInfo";
+function _PrintVersion_() {
+    echo "$ahv_versionInfo";
 }
 
 ###-------------------------------------------------------------------
 # 输出参数
 ###-------------------------------------------------------------------
-function printArgs() {
+function _PrintArgs_() {
     echo _OPTIONS_:
-    for key in "${!_OPTIONS_[@]}"; do
-        echo "  $key = ${_OPTIONS_["$key"]}"
+    for aht_key in "${!_OPTIONS_[@]}"; do
+        echo "  \${_OPTIONS_['$aht_key']} : ${_OPTIONS_["$aht_key"]}"
     done
 
     echo _SWITCHS_:
-    for key in "${!_SWITCHS_[@]}"; do
-        echo "  $key = ${_SWITCHS_["$key"]}"
+    for aht_key in "${!_SWITCHS_[@]}"; do
+        echo "  \${_SWITCHS_['$aht_key']} : ${_SWITCHS_["$aht_key"]}"
     done
 
     echo _PARAMS_:
-    _idx=0
-    for p in "${_PARAMS_[@]}"; do
-        echo "  [$_idx] : $p"
-        _idx=$[$_idx + 1]
+    local aht_idx=0
+    for aht_item in "${_PARAMS_[@]}"; do
+        echo "  \${_PARAMS_[$aht_idx]} : $aht_item"
+        aht_idx=$[$aht_idx + 1]
     done
 }
 
@@ -309,118 +318,151 @@ function printArgs() {
 ### 输入
 ######################################################################
 
-inputArgs=() # 命令的参数
+ahv_inputArgs=() # 命令的参数
 { # 参数清洗
-    for((i=1;i<=$#;i++))
-    do
-        eval '_tmp_=${'$i'}'
-        inputArgs[${#inputArgs[@]}]="$_tmp_"
+    for((i=1;i<=$#;i++)); do
+        eval 'aht_tmp=${'$i'}'
+        ahv_inputArgs[${#ahv_inputArgs[@]}]="$aht_tmp"
     done
 }
 
 # 配置参数
 if [ -n "$_ArgsMeta_" ]; then
     if [ "yes" = "$_DefaultHelpMeta_" ]; then
-        argsMeta="$_ArgsMeta_\n$argsMeta"
+        ahv_argsMeta="$_ArgsMeta_\n$ahv_argsMeta"
     else
-        argsMeta="$_ArgsMeta_"
+        ahv_argsMeta="$_ArgsMeta_"
     fi
 fi
 if [ -n "$_ShowHelp_" ]; then
-    showHelp="$_ShowHelp_"
+    ahv_showHelp="$_ShowHelp_"
 fi
 if [ -n "$_ShowVersion_" ]; then
-    showVersion="$_ShowVersion_"
+    ahv_showVersion="$_ShowVersion_"
 fi
 if [ -n "$_VersionInfo_" ]; then
-    versionInfo="$_VersionInfo_"
+    ahv_versionInfo="$_VersionInfo_"
+fi
+if [ -n "$_StrictParam_" ]; then
+    ahv_strictParam="$_StrictParam_"
+fi
+if [ -n "$_LeastParamCount_" ]; then
+    ahv_leastParamCount="$_LeastParamCount_"
 fi
 
 ######################################################################
 ### 处理
 ######################################################################
 
-{ # call _initArgsMeta()
-    _initArgsMeta "$argsMeta"
+{ # call ahf_initArgsMeta()
+    ahf_initArgsMeta "$ahv_argsMeta"
 }
-for key in "${!__metaOptions[@]}"; do
-    keyAliases="${__metaOptions["$key"]}"
-    if [ "+" = "${__metaOptionType["$key"]}" ]; then
-        { # call _findOutOption()
-            __name="$key";
-            __return=$_NULL_;
-            _findOutOption
+for avt_key in "${!ahv_metaOptions[@]}"; do
+    avt_keyAliases="${ahv_metaOptions["$avt_key"]}"
+    if [ "+" = "${ahv_metaOptionType["$avt_key"]}" ]; then
+        { # avf_findOutOption()
+            # @input
+            _name_="$avt_key";
+            _return_=$AHC_NULL;
+            # @call
+            avf_findOutOption
+            # @return
+            avt_val="$_return_"
         }
-        val="$__return"
-        if [ "$_NULL_" = "$val" ]; then 
+        if [ "$AHC_NULL" = "$avt_val" ]; then 
             continue;
         fi
-        __options["$key"]="$val"
-        if [ -n "$keyAliases" ]; then
-            __options["$keyAliases"]="$val"
+        ahv_options["$avt_key"]="$avt_val"
+        if [ -n "$avt_keyAliases" ]; then
+            ahv_options["$avt_keyAliases"]="$avt_val"
         fi
-    elif [ "?" = "${__metaOptionType["$key"]}" ]; then
-        { # call _findOutSwitch()
-            __name="$key"; 
-            __return=0;
-            _findOutSwitch
+    elif [ "?" = "${ahv_metaOptionType["$avt_key"]}" ]; then
+        { # call ahf_findOutSwitch()
+            # @input
+            _name_="$avt_key"; 
+            _return_=0;
+            # @call
+            ahf_findOutSwitch
+            # @return
+            avt_val=$_return_
         }
-        val=$__return
-        if [ 0 -eq $val ]; then 
+        if [ 0 -eq $avt_val ]; then 
             continue;
         fi
-        __switchs["$key"]=$val
-        if [ -n "$keyAliases" ]; then
-            __switchs["$keyAliases"]="$val"
+        ahv_switchs["$avt_key"]="$avt_val"
+        if [ -n "$avt_keyAliases" ]; then
+            ahv_switchs["$avt_keyAliases"]="$avt_val"
         fi
     fi
 done
 
-# for key in $(echo ${!__metaOptions[*]}); do
-#     echo 1====== ">$key<" : ">${__metaOptions["$key"]}<"
+# for aht_key in ${!ahv_metaOptions[*]}; do
+#     echo 1====== ">$aht_key<" : ">${ahv_metaOptions["$aht_key"]}<"
 # done
 
 # echo
-# for key in $(echo ${!__metaOptionType[*]}); do
-#     echo 2====== ">$key<" : ">${__metaOptionType["$key"]}<"
+# for aht_key in ${!ahv_metaOptionType[*]}; do
+#     echo 2====== ">$aht_key<" : ">${ahv_metaOptionType["$aht_key"]}<"
 # done
 
 # echo
-# for key in $(echo ${!__metaOptionDesc[*]}); do
-#     echo 3====== ">$key<" : ">${__metaOptionDesc["$key"]}<"
+# for aht_key in ${!ahv_metaOptionDesc[*]}; do
+#     echo 3====== ">$aht_key<" : ">${ahv_metaOptionDesc["$aht_key"]}<"
 # done
 
 ######################################################################
-### 输出
+### 输出变量
 ######################################################################
 
-declare -A _OPTIONS_=()
-for key in "${!__options[@]}"; do
-    _OPTIONS_["$key"]="${__options["$key"]}"
+declare -A _OPTIONS_=()  # [字典类型] 参数项 和 值
+declare -A _SWITCHS_=()  # [字典类型] 开关项 和 次数
+declare -a _PARAMS_=()   # [数组类型] 参数值
+
+for aht_key in "${!ahv_options[@]}"; do
+    _OPTIONS_["$aht_key"]="${ahv_options["$aht_key"]}"
 done
 
-declare -A _SWITCHS_=()
-for key in "${!__switchs[@]}"; do
-    _SWITCHS_["$key"]="${__switchs["$key"]}"
+
+for aht_key in "${!ahv_switchs[@]}"; do
+    _SWITCHS_["$aht_key"]="${ahv_switchs["$aht_key"]}"
 done
 
-declare -a _PARAMS_=()
-for item in "${inputArgs[@]}"; do
-    if [ ! -z "$item" ]; then
-        _PARAMS_[${#_PARAMS_[@]}]="$item"
+for aht_item in "${ahv_inputArgs[@]}"; do
+    if [ -n "$aht_item" ]; then
+        _PARAMS_[${#_PARAMS_[@]}]="$aht_item"
     fi
 done
 
-readonly _OPTIONS_           # [字典类型] 参数项 和 值
-readonly _SWITCHS_           # [字典类型] 开关项 和 次数
-readonly _PARAMS_            # [数组类型] 参数值
+readonly _OPTIONS_
+readonly _SWITCHS_
+readonly _PARAMS_
 
-if [ -n "${_SWITCHS_["$showHelp"]}" ]; then
-    printHelp 
+######################################################################
+### 输出信息
+######################################################################
+
+if [ -n "${_SWITCHS_["$ahv_showHelp"]}" ]; then
+    _PrintHelp_ 
     exit 0;
 fi
 
-if [ -n "${_SWITCHS_["$showVersion"]}" ]; then
-    printVersion
+if [ -n "${_SWITCHS_["$ahv_showVersion"]}" ]; then
+    _PrintVersion_
     exit 0;
+fi
+
+if [ "yes" = "$ahv_strictParam" ]; then
+    for aht_item in "${_PARAMS_[@]}"; do
+        if [[ "$aht_item" == -* ]]; then
+            echo "unknown option '$aht_item'" >&2
+            exit 1
+        fi
+    done
+fi
+
+if [ 0 != $ahv_leastParamCount ]; then
+    if [ ${#_PARAMS_[@]} -lt $ahv_leastParamCount ]; then 
+        echo "param count less then $ahv_leastParamCount" >&2
+        exit 1
+    fi
 fi
