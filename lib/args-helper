@@ -136,8 +136,8 @@ ahv_inputArgs=()
 ahv_argsMeta="helps:
 ?   --help      ### display this help and exit
 ?   --version   ### output version information and exit"
-ahv_showHelp="--help"
-ahv_showVersion="--version"
+ahv_showHelp=""
+ahv_showVersion=""
 ahv_versionInfo="no version information"
 ahv_strictParam="yes"
 ahv_leastParamCount=0
@@ -279,22 +279,37 @@ function ahf_findOutSwitch() {
 }
 
 ###-------------------------------------------------------------------
+# 输出提示信息
+###-------------------------------------------------------------------
+# $1: 提示信息
+#---------------------------------------------------------------------
+function AH_PrintInfo() {
+    if [ -n "$1" ]; then
+        printf "$1"
+    fi
+    if [ -n "$ahv_showHelp" ]; then
+        printf "Try '$0 $ahv_showHelp' for more information."
+    fi
+}
+
+###-------------------------------------------------------------------
 # 输出帮助信息
 ###-------------------------------------------------------------------
 # $1: 提示信息
 #---------------------------------------------------------------------
 function AH_PrintHelp() {
     if [ -n "$1" ]; then
-        echo "$1"
+        printf "$1"
     fi
     printf "$ahv_argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
 }
+
 
 ###-------------------------------------------------------------------
 # 输出版本
 ###-------------------------------------------------------------------
 function AH_PrintVersion() {
-    echo "$ahv_versionInfo";
+    printf "$ahv_versionInfo";
 }
 
 ###-------------------------------------------------------------------
@@ -319,18 +334,6 @@ function AH_PrintArgs() {
     done
 }
 
-###-------------------------------------------------------------------
-# 清理参数
-###-------------------------------------------------------------------
-AH_ClearConf() {
-    AH_ArgsMeta=""  # 参数元数据配置
-    AH_ShowHelp=""  # 输出帮助信息的指令参数(可省略)
-    AH_DefaultHelpMeta=""  # 因为AH_ArgsMeta中已经配置了--help和--version，无须使用默认配置
-    AH_ShowVersion=""  # 输出版本信息的指令参数（可省略）
-    AH_VersionInfo=""  # 自定义版本信息（可省略）
-    AH_StrictParam=""  # 不使用严格参数（支持以"-"开头的参数）
-    AH_LeastParamCount=0  # 参数数量不得少于1个（0表示不验证最少数量）
-}
 ######################################################################
 ### 输入
 ######################################################################
@@ -347,6 +350,8 @@ ahv_inputArgs=() # 命令的参数
 if [ -n "$AH_ArgsMeta" ]; then
     if [ "yes" = "$AH_DefaultHelpMeta" ]; then
         ahv_argsMeta="$AH_ArgsMeta\n$ahv_argsMeta"
+        ahv_showHelp="--help"
+        ahv_showVersion="--version"
     else
         ahv_argsMeta="$AH_ArgsMeta"
     fi
@@ -471,7 +476,7 @@ fi
 if [ "yes" = "$ahv_strictParam" ]; then
     for aht_item in "${AH_PARAMS[@]}"; do
         if [[ "$aht_item" == -* ]]; then
-            echo "unknown option '$aht_item'" >&2
+            AH_PrintMessage "unknown option '$aht_item'" >&2
             exit 1
         fi
     done
@@ -479,7 +484,7 @@ fi
 
 if [ 0 != $ahv_leastParamCount ]; then
     if [ ${#AH_PARAMS[@]} -lt $ahv_leastParamCount ]; then 
-        echo "param count less then $ahv_leastParamCount" >&2
+        AH_PrintMessage "param count less then $ahv_leastParamCount" >&2
         exit 1
     fi
 fi
