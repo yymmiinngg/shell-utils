@@ -476,7 +476,7 @@ fi
 if [ "yes" = "$ahv_strictParam" ]; then
     for aht_item in "${AH_PARAMS[@]}"; do
         if [[ "$aht_item" == -* ]]; then
-            AH_PrintInfo "unknown option '$aht_item'" >&2
+            AH_PrintInfo "Unknown option '$aht_item'" >&2
             exit 1
         fi
     done
@@ -484,7 +484,7 @@ fi
 
 if [ 0 != $ahv_leastParamCount ]; then
     if [ ${#AH_PARAMS[@]} -lt $ahv_leastParamCount ]; then 
-        AH_PrintInfo "param count less then $ahv_leastParamCount" >&2
+        AH_PrintInfo "Param count less then $ahv_leastParamCount" >&2
         exit 1
     fi
 fi
