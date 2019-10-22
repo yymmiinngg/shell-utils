@@ -81,7 +81,7 @@ function rrf_sshAndRun() {
 ######################################################################
 {
 	for rrt_host in $rrv_hosts; do
-		echo "######## run script on $rrv_user@$rrt_host:"
+		echo "######## run script on $rrv_user@$rrt_host beginning ..."
 		rrf_sshAndRun "$rrv_user" "$rrt_host" "$rrv_commandFile";
 		if [ $? -ne 0 ]; then
 			echo "######## run script on $rrv_user@$rrt_host fail" >&2
