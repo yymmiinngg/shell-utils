@@ -49,7 +49,7 @@ if [ ${AH_SWITCHS['--hello-world']} ]; then
     AH_PrintVersion # 输出版本信息
 
     echo -------------------------------------------------------
-    AH_PrintInfo    # 输出帮助信息
+    AH_PrintHelp    # 输出帮助信息
 
     echo -------------------------------------------------------
     AH_PrintArgs    # 输出参数信息
