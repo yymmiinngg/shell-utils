@@ -25,24 +25,24 @@ RR_NoBreak="no"
 if [ -z "$RR_Command" ]; then
 	RR_Command="${AH_OPTIONS['-s']}"
 	if [ ! -f "$RR_Command" ]; then
-		AH_PrintHelp "Command with -h is not a file" >&2
+		AH_PrintInfo "Command with -h is not a file" >&2
 		exit 1
 	fi
 fi
 if [ -z "$RR_Command" ]; then
-	AH_PrintHelp "Command must be input, you can set with [command] or option -s" >&2
+	AH_PrintInfo "Command must be input, you can set with [command] or option -s" >&2
 	exit 1
 fi
 
 if [ -z "$RR_Hosts" ]; then
 	RR_Command="${AH_OPTIONS['-h']}"
 	if [ ! -f "$RR_Hosts" ]; then
-		AH_PrintHelp "Hosts with -h is not a file" >&2
+		AH_PrintInfo "Hosts with -h is not a file" >&2
 		exit 1
 	fi
 fi
 if [ -z "$RR_Hosts" ]; then
-	AH_PrintHelp "Hosts must be input, you can set with [hosts] or option -h" >&2
+	AH_PrintInfo "Hosts must be input, you can set with [hosts] or option -h" >&2
 	exit 1
 fi
 
