@@ -243,26 +243,26 @@ source `dirname $0`/../lib/remote-run
 
 ```
 正常的示例 ----------------------------------------------------
-run script on root@127.0.0.1:
-    total 16
-    -rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
-    -rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
-    -rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
-    -rw-r--r--. 1 root root 2628 Oct 22 14:55 known_hosts
-run script on root@127.0.0.1 success.
-run script on root@127.0.0.1:
-    total 16
-    -rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
-    -rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
-    -rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
-    -rw-r--r--. 1 root root 2628 Oct 22 14:55 known_hosts
-run script on root@127.0.0.1 success.
+######## run script on root@127.0.0.1 beginning ...
+total 16
+-rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
+-rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
+-rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
+-rw-r--r--. 1 root root  696 Oct 22 19:21 known_hosts
+======== run script on root@127.0.0.1 success
+######## run script on root@127.0.0.1 beginning ...
+total 16
+-rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
+-rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
+-rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
+-rw-r--r--. 1 root root  696 Oct 22 19:21 known_hosts
+======== run script on root@127.0.0.1 success
 
 异常的示例 ----------------------------------------------------
-run script on root@127.0.0.1:
-    bash: line 3: lls: command not found
-run script on root@127.0.0.1 fail
-breaked at root@127.0.0.1
+######## run script on root@127.0.0.1 beginning ...
+-bash: line 1: lls: command not found
+======== run script on root@127.0.0.1 fail
+======== breaked at root@127.0.0.1
 ```
 
 # 工具
@@ -296,26 +296,26 @@ helps:
 ### 一个示例
 
 ```
-[root@local]# cssh -u root "ls ~/.ssh -l" "127.0.0.1 127.0.0.1"        
+[root@local]# cssh -u root "ls ~/.ssh -l" -h "127.0.0.1 127.0.0.1"        
 ```
 
 输出：
 
 ```
-run script on root@127.0.0.1:
-    total 16
-    -rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
-    -rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
-    -rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
-    -rw-r--r--. 1 root root 2628 Oct 22 14:55 known_hosts
-run script on root@127.0.0.1 success.
-run script on root@127.0.0.1:
-    total 16
-    -rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
-    -rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
-    -rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
-    -rw-r--r--. 1 root root 2628 Oct 22 14:55 known_hosts
-run script on root@127.0.0.1 success.
+######## run script on root@127.0.0.1 beginning ...
+total 16
+-rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
+-rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
+-rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
+-rw-r--r--. 1 root root  696 Oct 22 19:21 known_hosts
+======== run script on root@127.0.0.1 success
+######## run script on root@127.0.0.1 beginning ...
+total 16
+-rw-r--r--. 1 root root  408 Oct 22 11:17 authorized_keys
+-rw-------. 1 root root 1675 Oct 14 21:08 id_rsa
+-rw-r--r--. 1 root root  408 Oct 14 21:08 id_rsa.pub
+-rw-r--r--. 1 root root  696 Oct 22 19:21 known_hosts
+======== run script on root@127.0.0.1 success
 ```
 
 ### 异常中断
@@ -327,26 +327,26 @@ run script on root@127.0.0.1 success.
 输出：
 
 ```
-run script on root@127.0.0.1:
-    -bash: line 1: lsss: command not found
-run script on root@127.0.0.1 fail
-breaked at root@127.0.0.1
+######## run script on root@127.0.0.1 beginning ...
+-bash: line 1: lsss: command not found
+======== run script on root@127.0.0.1 fail
+======== breaked at root@127.0.0.1
 ```
 
 ### 忽略异常
 
 ```
-[root@local]# cssh -u root "lsss ~/.ssh -l" "127.0.0.1 127.0.0.1" -n
+[root@local]# cssh -u root "lsss ~/.ssh -l" -h "127.0.0.1 127.0.0.1" -n
 ```
 
 输出：
 
 ```
-run script on root@127.0.0.1:
-    -bash: line 1: lsss: command not found
-run script on root@127.0.0.1 fail
-run script on root@127.0.0.1:
-    -bash: line 1: lsss: command not found
-run script on root@127.0.0.1 fail
+######## run script on root@127.0.0.1 beginning ...
+-bash: line 1: lsss: command not found
+======== run script on root@127.0.0.1 fail
+######## run script on root@127.0.0.1 beginning ...
+-bash: line 1: lsss: command not found
+======== run script on root@127.0.0.1 fail
 ```
 

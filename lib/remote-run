@@ -84,15 +84,15 @@ function rrf_sshAndRun() {
 		echo "######## run script on $rrv_user@$rrt_host beginning ..."
 		rrf_sshAndRun "$rrv_user" "$rrt_host" "$rrv_commandFile";
 		if [ $? -ne 0 ]; then
-			echo "######## run script on $rrv_user@$rrt_host fail" >&2
+			echo "======== run script on $rrv_user@$rrt_host fail" >&2
 			if [ "yes" = "$rrv_noBreak" ]; then
 				continue
 			else
-				echo "######## breaked at $rrv_user@$rrt_host" >&2
+				echo "======== breaked at $rrv_user@$rrt_host" >&2
 				break
 			fi
 		else
-			echo "######## run script on $rrv_user@$rrt_host success"
+			echo "======== run script on $rrv_user@$rrt_host success"
 		fi
 	done
 }
