@@ -1,7 +1,7 @@
 #!/bin/sh
 
 AH_ArgsMeta="
-# Usage: cluster-ssh [options] [command] [hosts]
+# Usage: cluster-ssh [options] [command]
 # Login SSH and run command for every hosts.
 +   -u, --username      ### login username.
 +   -s, --command-file  ### command file to run on every hosts.
@@ -19,13 +19,13 @@ source `dirname $0`/../lib/args-helper
 
 RR_User="${AH_OPTIONS['-u']}"
 RR_Command="${AH_PARAMS[0]}"
-RR_Hosts="${AH_PARAMS[1]}"
+RR_Hosts="${AH_OPTIONS['-h']}"
 RR_NoBreak="no"
 
 if [ -z "$RR_Command" ]; then
 	RR_Command="${AH_OPTIONS['-s']}"
 	if [ -n "$RR_Command" ] && [ ! -f "$RR_Command" ]; then
-		AH_PrintInfo "Command with -h is not a file" >&2
+		AH_PrintInfo "Command with -s is not a file" >&2
 		exit 1
 	fi
 fi
@@ -34,13 +34,6 @@ if [ -z "$RR_Command" ]; then
 	exit 1
 fi
 
-if [ -z "$RR_Hosts" ]; then
-	RR_Command="${AH_OPTIONS['-h']}"
-	if [ -n "$RR_Hosts" ] && [ ! -f "$RR_Hosts" ]; then
-		AH_PrintInfo "Hosts with -h is not a file" >&2
-		exit 1
-	fi
-fi
 if [ -z "$RR_Hosts" ]; then
 	AH_PrintInfo "Hosts must be input, you can set with [hosts] or option -h" >&2
 	exit 1
