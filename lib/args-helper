@@ -285,10 +285,10 @@ function ahf_findOutSwitch() {
 #---------------------------------------------------------------------
 function AH_PrintInfo() {
     if [ -n "$1" ]; then
-        printf "$1"
+        printf "$1\n"
     fi
     if [ -n "$ahv_showHelp" ]; then
-        printf "Try '$0 $ahv_showHelp' for more information."
+        printf "Try '$0 $ahv_showHelp' for more information.\n"
     fi
 }
 
@@ -299,7 +299,7 @@ function AH_PrintInfo() {
 #---------------------------------------------------------------------
 function AH_PrintHelp() {
     if [ -n "$1" ]; then
-        printf "$1"
+        printf "$1\n"
     fi
     printf "$ahv_argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
 }
