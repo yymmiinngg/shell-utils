@@ -24,7 +24,7 @@ RR_NoBreak="no"
 
 if [ -z "$RR_Command" ]; then
 	RR_Command="${AH_OPTIONS['-s']}"
-	if [ ! -f "$RR_Command" ]; then
+	if [ -n "$RR_Command" ] && [ ! -f "$RR_Command" ]; then
 		AH_PrintInfo "Command with -h is not a file" >&2
 		exit 1
 	fi
@@ -36,7 +36,7 @@ fi
 
 if [ -z "$RR_Hosts" ]; then
 	RR_Command="${AH_OPTIONS['-h']}"
-	if [ ! -f "$RR_Hosts" ]; then
+	if [ -n "$RR_Hosts" ] && [ ! -f "$RR_Hosts" ]; then
 		AH_PrintInfo "Hosts with -h is not a file" >&2
 		exit 1
 	fi
