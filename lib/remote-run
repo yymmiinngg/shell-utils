@@ -70,9 +70,9 @@ function rrf_sshAndRun() {
 	local rrt_host=$2
 	local rrt_commandFile=$3
 	local rrt_sessionLogFile=$rrv_tmpdir/$rrt_host.out
-	ssh -T "$rrt_user@$rrt_host" < $rrt_commandFile > $rrt_sessionLogFile 2>&1
+	ssh -T "$rrt_user@$rrt_host" < $rrt_commandFile 2>&1
 	local rrt_sshResult=$?
-	cat $rrt_sessionLogFile | awk -F ' ' '{print "    "$0}'
+	# cat $rrt_sessionLogFile | awk -F ' ' '{print "    "$0}'
 	return $rrt_sshResult;
 }
 
@@ -81,18 +81,18 @@ function rrf_sshAndRun() {
 ######################################################################
 {
 	for rrt_host in $rrv_hosts; do
-		echo "run script on $rrv_user@$rrt_host:"
+		echo "######## run script on $rrv_user@$rrt_host:"
 		rrf_sshAndRun "$rrv_user" "$rrt_host" "$rrv_commandFile";
 		if [ $? -ne 0 ]; then
-			echo "run script on $rrv_user@$rrt_host fail" >&2
+			echo "######## run script on $rrv_user@$rrt_host fail" >&2
 			if [ "yes" = "$rrv_noBreak" ]; then
 				continue
 			else
-				echo "breaked at $rrv_user@$rrt_host" >&2
+				echo "######## breaked at $rrv_user@$rrt_host" >&2
 				break
 			fi
 		else
-			echo "run script on $rrv_user@$rrt_host success."
+			echo "######## run script on $rrv_user@$rrt_host success"
 		fi
 	done
 }
