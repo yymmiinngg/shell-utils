@@ -1,0 +1,53 @@
+#!/bin/sh
+
+AH_ArgsMeta="
+# Usage: cluster-ssh [options] [command] [hosts]
+# Login SSH and run command for every hosts.
++   -u, --username      ### login username.
++   -s, --command-file  ### command file to run on every hosts.
++   -h, --hosts-file    ### hosts file, like:
+#                       ### 192.168.1.1
+#                       ### 192.168.1.2
+#                       ### 192.168.1.3
+?   -n, --no-break      ### no break when error in a host
+"
+AH_DefaultHelpMeta="yes" 
+AH_StrictParam="yes"
+AH_VersionInfo="version: 1.0.1, copyright by yaoming (2019)"
+
+source `dirname $0`/../lib/args-helper
+
+RR_User="${AH_OPTIONS['-u']}"
+RR_Command="${AH_PARAMS[0]}"
+RR_Hosts="${AH_PARAMS[1]}"
+RR_NoBreak="no"
+
+if [ -z "$RR_Command" ]; then
+	RR_Command="${AH_OPTIONS['-s']}"
+	if [ ! -f "$RR_Command" ]; then
+		AH_PrintHelp "Command with -h is not a file" >&2
+		exit 1
+	fi
+fi
+if [ -z "$RR_Command" ]; then
+	AH_PrintHelp "Command must be input, you can set with [command] or option -s" >&2
+	exit 1
+fi
+
+if [ -z "$RR_Hosts" ]; then
+	RR_Command="${AH_OPTIONS['-h']}"
+	if [ ! -f "$RR_Hosts" ]; then
+		AH_PrintHelp "Hosts with -h is not a file" >&2
+		exit 1
+	fi
+fi
+if [ -z "$RR_Hosts" ]; then
+	AH_PrintHelp "Hosts must be input, you can set with [hosts] or option -h" >&2
+	exit 1
+fi
+
+if [ -n "${AH_SWITCHS['-n']}" ]; then
+	RR_NoBreak="yes"
+fi
+
+source `dirname $0`/../lib/remote-run

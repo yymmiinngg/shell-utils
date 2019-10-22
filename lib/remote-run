@@ -1,0 +1,105 @@
+#!/bin/sh
+
+######################################################################
+### 参数定义
+######################################################################
+
+# --------------------------------------------------------------------
+# [RR_User]
+#
+# 运程执行命令所使用的用户
+
+# --------------------------------------------------------------------
+# [RR_Command]
+#
+# 运程执行的命令，可以是脚本文件 
+
+# --------------------------------------------------------------------
+# [RR_Hosts]
+#
+# 执行的主机列表
+
+# --------------------------------------------------------------------
+# [RR_NoBreak]
+#
+# 出错后继续执行，如果RR_NoBreak=yes，则当其中一个主机执行出错时不影响余下的主机执行
+
+# rrt_rand="0000" #`date +%N`_$RANDOM
+
+######################################################################
+### 参数处理
+######################################################################
+rrv_user="`id -un`"
+rrv_noBreak="yes"
+rrv_commandFile=""
+rrv_hosts=""
+rrv_tmpdir=""
+
+# 参数处理
+{ 
+	if [ -n "$RR_User" ]; then
+		rrv_user="$RR_User"
+	fi
+
+	rrv_tmpdir="/var/tmp/shell-utils/$rrv_user"
+	mkdir -p "$rrv_tmpdir" # 生成临时目录
+
+	if [ -f "$RR_Command" ]; then
+		rrv_commandFile="$RR_Command"
+	else
+		rrv_commandFile="$rrv_tmpdir/cmd.sh"
+		printf "$RR_Command" > $rrv_commandFile
+	fi
+
+	if [ -f "$RR_Hosts" ]; then
+		rrv_hosts="`cat "$RR_Hosts" | xargs`"
+	else
+		rrv_hosts="$RR_Hosts"
+	fi
+
+	if [ -n "$RR_NoBreak" ]; then
+		rrv_noBreak="$RR_NoBreak"
+	fi
+}
+
+###-------------------------------------------------------------------
+# ssh连接并执行脚本
+###-------------------------------------------------------------------
+function rrf_sshAndRun() {
+	local rrt_user=$1
+	local rrt_host=$2
+	local rrt_commandFile=$3
+	local rrt_sessionLogFile=$rrv_tmpdir/$rrt_host.out
+	ssh -T "$rrt_user@$rrt_host" < $rrt_commandFile > $rrt_sessionLogFile 2>&1
+	local rrt_sshResult=$?
+	cat $rrt_sessionLogFile | awk -F ' ' '{print "    "$0}'
+	return $rrt_sshResult;
+}
+
+######################################################################
+### 处理执行
+######################################################################
+{
+	for rrt_host in $rrv_hosts; do
+		echo "run script on $rrv_user@$rrt_host:"
+		rrf_sshAndRun "$rrv_user" "$rrt_host" "$rrv_commandFile";
+		if [ $? -ne 0 ]; then
+			echo "run script on $rrv_user@$rrt_host fail" >&2
+			if [ "yes" = "$rrv_noBreak" ]; then
+				continue
+			else
+				echo "breaked at $rrv_user@$rrt_host" >&2
+				break
+			fi
+		else
+			echo "run script on $rrv_user@$rrt_host success."
+		fi
+	done
+}
+
+######################################################################
+### 清理
+######################################################################
+{
+	rm -rf $rrv_tmpdir
+}

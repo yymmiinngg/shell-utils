@@ -5,10 +5,10 @@
 ######################################################################
 
 # --------------------------------------------------------------------
-# [_ArgsMeta_]
+# [AH_ArgsMeta]
 #
 # 参数元数据，用于描述参数，示例如下：
-# _ArgsMeta_="
+# AH_ArgsMeta="
 # # Usage: cat [OPTION]... [FILE]...
 # # Concatenate FILE(s), or standard input, to standard output.
 # #
@@ -50,7 +50,7 @@
 #     optionItem 和 optionItemAliases 可以简略其一，也可调换位置
 #     <> 表示必须，[] 表示可选，_ 表示空格（1或多个）
 #
-# 以上示例调用 _PrintArgs_ 输出结果为：
+# 以上示例调用 AH_PrintArgs 输出结果为：
 # Usage: cat [OPTION]... [FILE]...
 # Concatenate FILE(s), or standard input, to standard output.
 #
@@ -79,49 +79,54 @@
 # For complete documentation, run: info coreutils 'cat invocation'
 
 # --------------------------------------------------------------------
-# [_ShowHelp_]
+# [AH_ShowHelp]
 # 
 # 显示帮助信息的参数项是什么，例如：
-# _ShowHelp_="--help" 配置后，输入 "cmd --help" 显示指令 "cmd" 的帮助信息
-# 需要确保的是 _ArgsMeta_ 有 一个同名的开关项，如：
+# AH_ShowHelp="--help" 配置后，输入 "cmd --help" 显示指令 "cmd" 的帮助信息
+# 需要确保的是 AH_ArgsMeta 有 一个同名的开关项，如：
 # "? --help ### display this help and exit "
 
 # --------------------------------------------------------------------
-# [_DefaultHelpMeta_]
+# [AH_DefaultHelpMeta]
 # 
-# 启用默认的帮助信息（在_ArgsMeta_中追加），例如：
-# _DefaultHelpMeta_="yes" 配置后，输入 "cmd --help" 将会追加显示默认的帮助
+# 启用默认的帮助信息（在AH_ArgsMeta中追加），例如：
+# AH_DefaultHelpMeta="yes" 配置后，输入 "cmd --help" 将会追加显示默认的帮助
 # 信息
 
 # --------------------------------------------------------------------
-# [_ShowVersion_]
+# [AH_ShowVersion]
 #
 # 显示版本信息的参数项是什么，例如：
-# _ShowVersion_="--version" 配置后，输入 "cmd --version" 显示指令 "cmd" 
-# 的版本信息(_VersionInfo_)
+# AH_ShowVersion="--version" 配置后，输入 "cmd --version" 显示指令 "cmd" 
+# 的版本信息(AH_VersionInfo)
 
 # --------------------------------------------------------------------
-# [_VersionInfo_]
+# [AH_VersionInfo]
 #
 # 指令的版本信息，例如：
-# _VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"
+# AH_VersionInfo="version: 1.0.1, copyright by yaoming (2019)"
 
 # --------------------------------------------------------------------
-# [_StrictParam_]
+# [AH_StrictParam]
 # 
 # 是否开启严格参数(yes|no)，例如：
-# _StrictParam_="yes" 将会视“-”开头的参数为非法，这样可以避免写错选项名称
+# AH_StrictParam="yes" 将会视“-”开头的参数为非法，这样可以避免写错选项名称
 
 # --------------------------------------------------------------------
-# [_LeastParamCount_]
+# [AH_LeastParamCount]
 # 
 # 参数个数下限(0|N)，例如：
-# _LeastParamCount_=0 表示不限参数数量，n表示至少需要输入n个参数
+# AH_LeastParamCount=0 表示不限参数数量，n表示至少需要输入n个参数
 
 
 ######################################################################
 ### 声明 和 程序主体
 ######################################################################
+if [ -n "$AHC_NULL" ]; then
+    echo "Can not source args-helper file more than 2 times." >&2
+    exit 1     
+fi
+
 readonly AHC_NULL="_AHC_NULL_"
 
 # 命令入参
@@ -278,7 +283,7 @@ function ahf_findOutSwitch() {
 ###-------------------------------------------------------------------
 # $1: 提示信息
 #---------------------------------------------------------------------
-function _PrintHelp_() {
+function AH_PrintHelp() {
     if [ -n "$1" ]; then
         echo "$1"
     fi
@@ -288,32 +293,44 @@ function _PrintHelp_() {
 ###-------------------------------------------------------------------
 # 输出版本
 ###-------------------------------------------------------------------
-function _PrintVersion_() {
+function AH_PrintVersion() {
     echo "$ahv_versionInfo";
 }
 
 ###-------------------------------------------------------------------
 # 输出参数
 ###-------------------------------------------------------------------
-function _PrintArgs_() {
-    echo _OPTIONS_:
-    for aht_key in "${!_OPTIONS_[@]}"; do
-        echo "  \${_OPTIONS_['$aht_key']} : ${_OPTIONS_["$aht_key"]}"
+function AH_PrintArgs() {
+    echo AH_OPTIONS:
+    for aht_key in "${!AH_OPTIONS[@]}"; do
+        echo "  \${AH_OPTIONS['$aht_key']} : ${AH_OPTIONS["$aht_key"]}"
     done
 
-    echo _SWITCHS_:
-    for aht_key in "${!_SWITCHS_[@]}"; do
-        echo "  \${_SWITCHS_['$aht_key']} : ${_SWITCHS_["$aht_key"]}"
+    echo AH_SWITCHS:
+    for aht_key in "${!AH_SWITCHS[@]}"; do
+        echo "  \${AH_SWITCHS['$aht_key']} : ${AH_SWITCHS["$aht_key"]}"
     done
 
-    echo _PARAMS_:
+    echo AH_PARAMS:
     local aht_idx=0
-    for aht_item in "${_PARAMS_[@]}"; do
-        echo "  \${_PARAMS_[$aht_idx]} : $aht_item"
+    for aht_item in "${AH_PARAMS[@]}"; do
+        echo "  \${AH_PARAMS[$aht_idx]} : $aht_item"
         aht_idx=$[$aht_idx + 1]
     done
 }
 
+###-------------------------------------------------------------------
+# 清理参数
+###-------------------------------------------------------------------
+AH_ClearConf() {
+    AH_ArgsMeta=""  # 参数元数据配置
+    AH_ShowHelp=""  # 输出帮助信息的指令参数(可省略)
+    AH_DefaultHelpMeta=""  # 因为AH_ArgsMeta中已经配置了--help和--version，无须使用默认配置
+    AH_ShowVersion=""  # 输出版本信息的指令参数（可省略）
+    AH_VersionInfo=""  # 自定义版本信息（可省略）
+    AH_StrictParam=""  # 不使用严格参数（支持以"-"开头的参数）
+    AH_LeastParamCount=0  # 参数数量不得少于1个（0表示不验证最少数量）
+}
 ######################################################################
 ### 输入
 ######################################################################
@@ -327,27 +344,27 @@ ahv_inputArgs=() # 命令的参数
 }
 
 # 配置参数
-if [ -n "$_ArgsMeta_" ]; then
-    if [ "yes" = "$_DefaultHelpMeta_" ]; then
-        ahv_argsMeta="$_ArgsMeta_\n$ahv_argsMeta"
+if [ -n "$AH_ArgsMeta" ]; then
+    if [ "yes" = "$AH_DefaultHelpMeta" ]; then
+        ahv_argsMeta="$AH_ArgsMeta\n$ahv_argsMeta"
     else
-        ahv_argsMeta="$_ArgsMeta_"
+        ahv_argsMeta="$AH_ArgsMeta"
     fi
 fi
-if [ -n "$_ShowHelp_" ]; then
-    ahv_showHelp="$_ShowHelp_"
+if [ -n "$AH_ShowHelp" ]; then
+    ahv_showHelp="$AH_ShowHelp"
 fi
-if [ -n "$_ShowVersion_" ]; then
-    ahv_showVersion="$_ShowVersion_"
+if [ -n "$AH_ShowVersion" ]; then
+    ahv_showVersion="$AH_ShowVersion"
 fi
-if [ -n "$_VersionInfo_" ]; then
-    ahv_versionInfo="$_VersionInfo_"
+if [ -n "$AH_VersionInfo" ]; then
+    ahv_versionInfo="$AH_VersionInfo"
 fi
-if [ -n "$_StrictParam_" ]; then
-    ahv_strictParam="$_StrictParam_"
+if [ -n "$AH_StrictParam" ]; then
+    ahv_strictParam="$AH_StrictParam"
 fi
-if [ -n "$_LeastParamCount_" ]; then
-    ahv_leastParamCount="$_LeastParamCount_"
+if [ -n "$AH_LeastParamCount" ]; then
+    ahv_leastParamCount="$AH_LeastParamCount"
 fi
 
 ######################################################################
@@ -414,45 +431,45 @@ done
 ### 输出变量
 ######################################################################
 
-declare -A _OPTIONS_=()  # [字典类型] 参数项 和 值
-declare -A _SWITCHS_=()  # [字典类型] 开关项 和 次数
-declare -a _PARAMS_=()   # [数组类型] 参数值
+declare -A AH_OPTIONS=()  # [字典类型] 参数项 和 值
+declare -A AH_SWITCHS=()  # [字典类型] 开关项 和 次数
+declare -a AH_PARAMS=()   # [数组类型] 参数值
 
 for aht_key in "${!ahv_options[@]}"; do
-    _OPTIONS_["$aht_key"]="${ahv_options["$aht_key"]}"
+    AH_OPTIONS["$aht_key"]="${ahv_options["$aht_key"]}"
 done
 
 
 for aht_key in "${!ahv_switchs[@]}"; do
-    _SWITCHS_["$aht_key"]="${ahv_switchs["$aht_key"]}"
+    AH_SWITCHS["$aht_key"]="${ahv_switchs["$aht_key"]}"
 done
 
 for aht_item in "${ahv_inputArgs[@]}"; do
     if [ -n "$aht_item" ]; then
-        _PARAMS_[${#_PARAMS_[@]}]="$aht_item"
+        AH_PARAMS[${#AH_PARAMS[@]}]="$aht_item"
     fi
 done
 
-readonly _OPTIONS_
-readonly _SWITCHS_
-readonly _PARAMS_
+readonly AH_OPTIONS
+readonly AH_SWITCHS
+readonly AH_PARAMS
 
 ######################################################################
 ### 输出信息
 ######################################################################
 
-if [ -n "${_SWITCHS_["$ahv_showHelp"]}" ]; then
-    _PrintHelp_ 
+if [ -n "${AH_SWITCHS["$ahv_showHelp"]}" ]; then
+    AH_PrintHelp 
     exit 0;
 fi
 
-if [ -n "${_SWITCHS_["$ahv_showVersion"]}" ]; then
-    _PrintVersion_
+if [ -n "${AH_SWITCHS["$ahv_showVersion"]}" ]; then
+    AH_PrintVersion
     exit 0;
 fi
 
 if [ "yes" = "$ahv_strictParam" ]; then
-    for aht_item in "${_PARAMS_[@]}"; do
+    for aht_item in "${AH_PARAMS[@]}"; do
         if [[ "$aht_item" == -* ]]; then
             echo "unknown option '$aht_item'" >&2
             exit 1
@@ -461,7 +478,7 @@ if [ "yes" = "$ahv_strictParam" ]; then
 fi
 
 if [ 0 != $ahv_leastParamCount ]; then
-    if [ ${#_PARAMS_[@]} -lt $ahv_leastParamCount ]; then 
+    if [ ${#AH_PARAMS[@]} -lt $ahv_leastParamCount ]; then 
         echo "param count less then $ahv_leastParamCount" >&2
         exit 1
     fi

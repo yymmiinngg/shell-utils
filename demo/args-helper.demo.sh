@@ -2,7 +2,7 @@
 
 # ###########################################################
 # 使用前配置 
-_ArgsMeta_="
+AH_ArgsMeta="
 # For example cat:
 # 
 # Usage: cat [OPTION]... [FILE]...
@@ -31,26 +31,26 @@ _ArgsMeta_="
 # GNU coreutils home page: <http://www.gnu.org/software/coreutils/>
 # General help using GNU software: <http://www.gnu.org/gethelp/>
 # For complete documentation, run: info coreutils 'cat invocation'"  # 参数元数据配置
-_ShowHelp_="--help"  # 输出帮助信息的指令参数(可省略)
-_DefaultHelpMeta_="no"  # 因为_ArgsMeta_中已经配置了--help和--version，无须使用默认配置
-_ShowVersion_="--version"  # 输出版本信息的指令参数（可省略）
-_VersionInfo_="version: 1.0.1, copyright by yaoming (2019)"  # 自定义版本信息（可省略）
-_StrictParam_="no"  # 不使用严格参数（支持以"-"开头的参数）
-_LeastParamCount_=0  # 参数数量不得少于1个（0表示不验证最少数量）
+AH_ShowHelp="--help"  # 输出帮助信息的指令参数(可省略)
+AH_DefaultHelpMeta="no"  # 因为AH_ArgsMeta中已经配置了--help和--version，无须使用默认配置
+AH_ShowVersion="--version"  # 输出版本信息的指令参数（可省略）
+AH_VersionInfo="version: 1.0.1, copyright by yaoming (2019)"  # 自定义版本信息（可省略）
+AH_StrictParam="no"  # 不使用严格参数（支持以"-"开头的参数）
+AH_LeastParamCount=0  # 参数数量不得少于1个（0表示不验证最少数量）
 
 # ###########################################################
 # 引入工具文件（这里按实际目录结构引入）
-source `dirname $0`/args-helper
+source `dirname $0`/../lib/args-helper 
 
 # ###########################################################
 # 使用
-if [ ${_SWITCHS_['--hello-world']} ]; then
+if [ ${AH_SWITCHS['--hello-world']} ]; then
     echo -------------------------------------------------------
-    _PrintVersion_ # 输出版本信息
+    AH_PrintVersion # 输出版本信息
 
     echo -------------------------------------------------------
-    _PrintHelp_    # 输出帮助信息
+    AH_PrintHelp    # 输出帮助信息
 
     echo -------------------------------------------------------
-    _PrintArgs_    # 输出参数信息
+    AH_PrintArgs    # 输出参数信息
 fi
