@@ -1,0 +1,63 @@
+#!/bin/sh
+
+function STR_GetLeft(){
+    local str="$1"
+    local point="$2"
+    if [[ ! "$str" =~ "$point" ]]; then
+        return
+    fi
+    printf "${str%%$point*}"
+}
+
+function STR_GetLeftOutter(){
+    local str="$1"
+    local point="$2"
+    if [[ ! "$str" =~ "$point" ]]; then
+        return
+    fi
+    printf "${str%$point*}"
+}
+
+function STR_GetRight(){
+    local str="$1"
+    local point="$2"
+    if [[ ! "$str" =~ "$point" ]]; then
+        return
+    fi
+    printf "${str#*$point}"
+}
+
+function STR_GetRightOutter(){
+    local str="$1"
+    local point="$2"
+    if [[ ! "$str" =~ "$point" ]]; then
+        return
+    fi
+    printf "${str##*$point}"
+}
+
+function STR_GetSection(){
+    local str="$1"
+    local lpoint="$2"
+    local rpoint="$3"
+    if [[ ! "$str" =~ "$lpoint" ]]; then
+        return
+    fi
+    if [[ ! "$str" =~ "$rpoint" ]]; then
+        return
+    fi
+    str=$(STR_GetRight "$str" "$lpoint")
+    str=$(STR_GetLeftOutter "$str" "$rpoint")
+    printf "$str"
+}
+
+function STR_Trim() {
+    local str="$1"
+    local trimChar="$2"
+    if [ -z "$trimChar" ]; then
+        printf " $str " | sed -e 's/^[ \t]*//g' | sed -e 's/[ \t]*$//g'
+    else
+        printf "$str" | sed -e 's/^['"$trimChar"']*//g' | sed -e 's/['"$trimChar"']*$//g'
+    fi
+    
+}
