@@ -1,19 +1,19 @@
 #!/bin/sh
 
-CH_ConfigsName="myConfigs"
-CH_ConfigsFile="config.cnf"
+CH_ConfigName="myConfig"
+CH_ConfigFile="config.cnf"
 
 # 执行库脚本
 source `dirname $0`/../lib/conf-helper
-eval $( echo "__________=\${!$CH_ConfigsName[@]}" )
+eval "configKeys=\${!$CH_ConfigName[@]}"
 
-echo Config name: $CH_ConfigsName
-echo Config file: $CH_ConfigsFile
-echo Config items: ${__________[*]}
+echo Config name: $CH_ConfigName
+echo Config file: $CH_ConfigFile
+echo Config items: ${configKeys[*]}
 
-echo $CH_ConfigsName:
+echo $CH_ConfigName:
 
-for key in ${__________[*]}; do
-    eval $( echo "value=\${$CH_ConfigsName[$key]}" )
-    printf "  \${$CH_ConfigsName[$key]} = $value \n"
+for key in ${configKeys[*]}; do
+    eval "value=\${$CH_ConfigName[$key]}"
+    echo "  \${$CH_ConfigName[\"$key\"]} = $value"
 done

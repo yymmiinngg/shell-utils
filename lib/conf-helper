@@ -1,21 +1,21 @@
 #!/bin/sh
-chv_ConfigsName="$CH_ConfigsName"
-chv_ConfigsFile="$CH_ConfigsFile"
+chv_ConfigName="$CH_ConfigName"
+chv_ConfigFile="$CH_ConfigFile"
 
-if [ -z "$chv_ConfigsName" ]; then
-    chv_ConfigsName="CH_Configs"
+if [ -z "$chv_ConfigName" ]; then
+    chv_ConfigName="CH_Config"
 fi
 
-if [ -z "$chv_ConfigsFile" ]; then
-    chv_ConfigsFile="config.cnf"
+if [ -z "$chv_ConfigFile" ]; then
+    chv_ConfigFile="config.cnf"
 fi
 
-if [ ! -f $chv_ConfigsFile ]; then
-    echo "$chv_ConfigsFile not exists" >&2
+if [ ! -f $chv_ConfigFile ]; then
+    echo "$chv_ConfigFile not exists" >&2
 else
-    eval $( echo "declare -A $chv_ConfigsName=()" )
+    eval $( echo "declare -A $chv_ConfigName=()" )
     eval $( 
-        cat "$chv_ConfigsFile" | \
+        cat "$chv_ConfigFile" | \
         grep "=" | \
         egrep -v "^#.*" | \
         sed s/\\\"/\"/g | \
@@ -29,7 +29,7 @@ else
             }
             {
                 if(trim($1) != ""){
-                    printf("'$chv_ConfigsName'[\"%s\"]=\"%s\"\n", trim($1), trim($2)); 
+                    printf("'$chv_ConfigName'[\"%s\"]=\"%s\"\n", trim($1), trim($2)); 
                 }
             }
         '
