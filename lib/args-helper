@@ -41,7 +41,7 @@
 # <${optionType}>_<${optionItem}>[,_${optionItemAliases}]_<###>_[${optionDescription}]
 # optionType: 选项的类型，要顶格
 #     + 值选项，例如："tail -n 1000 console.out" 中 1000 是 -n 的值
-#     - 开关选项，例如："ls -a ./" 中 -a 是开关选项
+#     ? 开关选项，例如："ls -a ./" 中 -a 是开关选项
 #     # 描述信息，只用于显示，无其它作用
 # optionItem: 通常是以“-”开头的参数名（简写），如："tail -n 1000 console.out" 中 -n 是参数名
 # optionItemAliases: 经常作为 optionItem 的别名，如："tail -n 1000 console.out" 也可以写成 "tail --lines=1000 console.out"
