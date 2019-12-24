@@ -44,7 +44,7 @@ AH_ArgsMeta="
 # Concatenate FILE(s), or standard input, to standard output.
 #
 ?   -A, --show-all          ### equivalent to -vET
-+   -b, --number-nonblank   ### number nonempty output lines
+*   -b, --number-nonblank   ### number nonempty output lines
 ?   -e                      ### equivalent to -vE
 ?   -E, --show-ends         ### display $ at end of each line
 +   -n, --number            ### number all output lines
