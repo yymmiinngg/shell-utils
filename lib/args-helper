@@ -19,7 +19,7 @@
 # +   -n, --number            ### number all output lines
 # +   -s, --squeeze-blank     ### suppress repeated empty output lines
 # ?   -t                      ### equivalent to -vT
-# ?   -T, --show-tabs         ### display TAB characters as ^I
+# *   -T, --show-tabs         ### display TAB characters as ^I
 # ?   -u                      ### (ignored)
 # ?   -v, --show-nonprinting  ### use ^ and M- notation, except for LFD and TAB
 # ?       --help              ### display this help and exit
@@ -40,7 +40,8 @@
 # 格式说明：
 # <${optionType}>_<${optionItem}>[,_${optionItemAliases}]_<###>_[${optionDescription}]
 # optionType: 选项的类型，要顶格
-#     + 值选项，例如："tail -n 1000 console.out" 中 1000 是 -n 的值
+#     + 值选项(选填)，例如："tail -n 1000 console.out" 中 1000 是 -n 的值
+#     * 值选项(必填)
 #     ? 开关选项，例如："ls -a ./" 中 -a 是开关选项
 #     # 描述信息，只用于显示，无其它作用
 # optionItem: 通常是以“-”开头的参数名（简写），如："tail -n 1000 console.out" 中 -n 是参数名
@@ -155,14 +156,21 @@ declare -A ahv_switchs=()
 # --help        只有长选项
 declare -A ahv_metaOptions=()
 
-# 选项是否有值
-# -e=-          没有值
-# -n=+          有值
-# --help=-      没有值
+# 选项的名称列表
+ahv_metaOptionNames=()
+
+# 选项类型
+# -e=?          开关（没有值）
+# -n=+          选项（必填）
+# --help=-      选项（选填）
 declare -A ahv_metaOptionType=()
 
 # 选项的说明
 declare -A ahv_metaOptionDesc=()
+
+# 选项是否是必填项
+declare -A ahv_metaOptionMust=()
+
 
 ###-------------------------------------------------------------------
 # 去除字符串前后的空格
@@ -208,11 +216,17 @@ function ahf_initArgsMeta() {
             ahv_metaOptions["$aht_option"]="$aht_optionAliases"
             ahv_metaOptionType["$aht_option"]="$aht_optionType"
             ahv_metaOptionDesc["$aht_option"]="$aht_optionDesc"
+            ahv_metaOptionNames[${#ahv_metaOptionNames[*]}]="$aht_option"
+             # 是否必填
+            if [ "*" = "$aht_optionType" ]; then
+                ahv_metaOptionMust["$aht_option"]="yes"
+            fi
         fi
 
         if [ -n "$aht_optionAliases" ]; then
             ahv_metaOptions["$aht_optionAliases"]="$aht_option"
             ahv_metaOptionType["$aht_optionAliases"]="$aht_optionType"
+            ahv_metaOptionNames[${#ahv_metaOptionNames[*]}]="$aht_optionAliases"
         fi
 
     done
@@ -301,9 +315,8 @@ function AH_PrintHelp() {
     if [ -n "$1" ]; then
         printf "$1\n"
     fi
-    printf "$ahv_argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?]//g | sed s/^[\#]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
+    printf "$ahv_argsMeta" | cat | awk '{  printf($0"\n"); }' | egrep -o ".*" | sed s/^[+\?\#\*]//g | sed s/^[\ ]//g | sed s/\#\#\#//g 
 }
-
 
 ###-------------------------------------------------------------------
 # 输出版本
@@ -381,7 +394,7 @@ fi
 }
 for avt_key in "${!ahv_metaOptions[@]}"; do
     avt_keyAliases="${ahv_metaOptions["$avt_key"]}"
-    if [ "+" = "${ahv_metaOptionType["$avt_key"]}" ]; then
+    if [ "+" = "${ahv_metaOptionType["$avt_key"]}" -o "*" = "${ahv_metaOptionType["$avt_key"]}" ]; then
         { # avf_findOutOption()
             # @input
             _name_="$avt_key";
@@ -444,7 +457,6 @@ for aht_key in "${!ahv_options[@]}"; do
     AH_OPTIONS["$aht_key"]="${ahv_options["$aht_key"]}"
 done
 
-
 for aht_key in "${!ahv_switchs[@]}"; do
     AH_SWITCHS["$aht_key"]="${ahv_switchs["$aht_key"]}"
 done
@@ -473,6 +485,7 @@ if [ -n "${AH_SWITCHS["$ahv_showVersion"]}" ]; then
     exit 0;
 fi
 
+# 严格模式下的检查
 if [ "yes" = "$ahv_strictParam" ]; then
     for aht_item in "${AH_PARAMS[@]}"; do
         if [[ "$aht_item" == -* ]]; then
@@ -482,9 +495,25 @@ if [ "yes" = "$ahv_strictParam" ]; then
     done
 fi
 
+# 检查参数数量是否满足
 if [ 0 != $ahv_leastParamCount ]; then
     if [ ${#AH_PARAMS[@]} -lt $ahv_leastParamCount ]; then 
         AH_PrintInfo "Param count less then $ahv_leastParamCount" >&2
         exit 1
     fi
+fi
+
+# 检查是否有必填选项缺失
+ahv_mustInfo=""
+for aht_key in "${ahv_metaOptionNames[@]}"; do
+    if [ -n "${ahv_metaOptionMust["$aht_key"]}" -a -z "${AH_OPTIONS["$aht_key"]}" ]; then
+        if [ -n "${ahv_metaOptions["$aht_key"]}" ]; then
+            ahv_mustInfo="$ahv_mustInfo\n  $aht_key, ${ahv_metaOptions["$aht_key"]}"
+        else
+            ahv_mustInfo="$ahv_mustInfo\n  $aht_key"
+        fi
+    fi
+done
+if [ -n "$ahv_mustInfo" ]; then
+    AH_PrintInfo "Options are necessary: $ahv_mustInfo" >&2
 fi

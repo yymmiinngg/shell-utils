@@ -8,17 +8,17 @@ AH_ArgsMeta="
 # Usage: cat [OPTION]... [FILE]...
 # Concatenate FILE(s), or standard input, to standard output.
 #
-?   -A, --show-all          ### equivalent to -vET
-+   -b, --number-nonblank   ### number nonempty output lines
-?   -e                      ### equivalent to -vE
-?   -E, --show-ends         ### display $ at end of each line
++   -A, --show-all          ### equivalent to -vET
+*   -b, --number-nonblank   ### number nonempty output lines
++   -e                      ### equivalent to -vE
+*   -E, --show-ends         ### display $ at end of each line
 +   -n, --number            ### number all output lines
-+   -s, --squeeze-blank     ### suppress repeated empty output lines
-?   -t                      ### equivalent to -vT
-?   -T, --show-tabs         ### display TAB characters as ^I
-?   -u                      ### (ignored)
-?   -v, --show-nonprinting  ### use ^ and M- notation, except for LFD and TAB
-?   -w, --hello-world       ### output hello world and exit
+*   -s, --squeeze-blank     ### suppress repeated empty output lines
++   -t                      ### equivalent to -vT
++   -T, --show-tabs         ### display TAB characters as ^I、
+*   -u                      ### (ignored)
++   -v, --show-nonprinting  ### use ^ and M- notation, except for LFD and TAB
++   -w, --hello-world       ### output hello world and exit
 ?       --help              ### display this help and exit
 ?       --version           ### output version information and exit
 # With no FILE, or when FILE is -, read standard input.
@@ -40,7 +40,7 @@ AH_LeastParamCount=0  # 参数数量不得少于1个（0表示不验证最少数
 
 # ###########################################################
 # 引入工具文件（这里按实际目录结构引入）
-source `dirname $0`/../lib/args-helper 
+. `dirname $0`/../lib/args-helper 
 
 # ###########################################################
 # 使用

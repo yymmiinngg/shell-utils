@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source `dirname $0`/../lib/string-utils
+. `dirname $0`/../lib/string-utils
 
 echo ">$( STR_GetLeft "a|b|c" "" )<"
 echo ">$( STR_GetLeft "a|b|c" "m" )<"

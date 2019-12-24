@@ -4,7 +4,7 @@ CH_ConfigName="myConfig"
 CH_ConfigFile="config.cnf"
 
 # 执行库脚本
-source `dirname $0`/../lib/conf-helper
+. `dirname $0`/../lib/conf-helper
 eval "configKeys=\${!$CH_ConfigName[@]}"
 
 echo Config name: $CH_ConfigName

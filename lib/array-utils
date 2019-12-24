@@ -1,0 +1,14 @@
+#!/bin/sh
+
+function ARR_indexOf() {
+    local arr=`echo $1`
+    local item="$2"
+    local _xrsh_tmp
+    for _xrsh_tmp in ${arr[@]}; do
+        if test "$item" = "$_xrsh_tmp"; then
+            echo yes
+            return
+        fi
+    done
+    echo no
+}
