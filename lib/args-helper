@@ -516,4 +516,5 @@ for aht_key in "${ahv_metaOptionNames[@]}"; do
 done
 if [ -n "$ahv_mustInfo" ]; then
     AH_PrintInfo "Options are necessary: $ahv_mustInfo" >&2
+    exit 1
 fi

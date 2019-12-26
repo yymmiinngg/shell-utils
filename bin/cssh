@@ -3,9 +3,9 @@
 AH_ArgsMeta="
 # Usage: cluster-ssh [options] [command]
 # Login SSH and run command for every hosts.
-+   -u, --username      ### login username.
-+   -s, --command-file  ### command file to run on every hosts.
-+   -h, --hosts-file    ### hosts file, like:
+*   -u, --username      ### login username.
+*   -s, --command-file  ### command file to run on every hosts.
+*   -h, --hosts-file    ### hosts file, like:
 #                       ### 192.168.1.1
 #                       ### 192.168.1.2
 #                       ### 192.168.1.3
