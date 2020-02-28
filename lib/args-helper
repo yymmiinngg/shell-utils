@@ -249,14 +249,14 @@ function ahf_initArgsMeta() {
 function avf_findOutOption() {
     local aht_returnNext=0
     local aht_idx=-1
+    _return_=$AHC_NULL
     for item in "${ahv_inputArgs[@]}"; do 
         aht_idx=$[$aht_idx + 1]
+        # 处理 -n value 类型的参数
         if [ $aht_returnNext -eq 1 ]; then
             aht_returnNext=0
             # 判断参数值是不是另一个参数名，如果是，则不取值
-            if [ 'yes' = $(ARR_indexOf "${ahv_metaOptionNames[*]}" "$item") ]; then
-                _return_=""
-            else
+            if [ 'yes' != $(ARR_indexOf "${ahv_metaOptionNames[*]}" "$item") ]; then
                 _return_="$item"
                 ahv_inputArgs[$aht_idx]=""
             fi
@@ -267,11 +267,10 @@ function avf_findOutOption() {
             ahv_inputArgs[$aht_idx]=""
             continue
         fi
+        # 处理 --name=value 的参数
         local aht_key=${item%%=*}
         local aht_value=${item#*=}
         if [ "$aht_key" = "$_name_" ]; then
-            # echo  "${ahv_inputArgs[@]}"
-            # echo $aht_key "==============" "$aht_value" $aht_idx
             _return_="$aht_value"
             ahv_inputArgs[$aht_idx]=""
             continue
