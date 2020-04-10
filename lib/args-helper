@@ -322,7 +322,7 @@ function AH_PrintHelp() {
 # 输出版本
 ###-------------------------------------------------------------------
 function AH_PrintVersion() {
-    printf "$ahv_versionInfo";
+    printf "$ahv_versionInfo\n";
 }
 
 ###-------------------------------------------------------------------
