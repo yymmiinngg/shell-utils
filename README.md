@@ -4,6 +4,22 @@ Shell 工具集
 当前支持 centos-6.x 和 centos-7.x ，暂不支持 macos 系统，欢迎提交更多的适配信息！
 
 # 引入
+
+提供了两种引入程序代码的方式，在生产环境荐使用全局引入。为了便于理解，本文示例采用子模块引入方式。
+
+## 全局引入
+
+在环境变量中添加 SHELL_UTILS_HOME，可确保库和工具都可通过 $SHELL_UTILS_HOME 变量来引入，如下：
+
+```
+# shell-utils 的安装目录
+export SHELL_UTILS_HOME=/opt/shell-utils
+# 全局工具
+export PATH=$PATH:$SHELL_UTILS_HOME/bin
+```
+
+## 子模块引入
+
 在你的shell程序代码目录下，将shell-utils以子模块的形式添加到程序中
 ```
 git submodule add git@github.com:yymmiinngg/shell-utils.git shell-utils

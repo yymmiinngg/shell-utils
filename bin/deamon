@@ -1,0 +1,88 @@
+#!/bin/sh
+
+cmdfile=$(readlink -f $0)
+cmdname=$(basename $cmdfile)
+cmdpath=$(dirname $cmdfile)
+
+AH_ArgsMeta="
+# Usage: $cmdname [Options] [Command]
+# Run command use deamon mode.
+#   Command                  ### A command, will be run, could be a shell file.
+# Options:
++   -i, --check-interval     ### check the process live in seconds, default is 10
++   -l, --log-file           ### log file, default is /dev/null
++   -c, --command-log-file   ### command log file, default is /dev/null
++   -p, --pid-file           ### monitoring the pid file to check live, default is ./$cmdname.pid
+?   -w, --without-deamon     ### without deamon mode
+"
+AH_DefaultHelpMeta="yes" 
+AH_StrictParam="yes"
+AH_VersionInfo="version: 0.0.1, copyright by CTJ (2020)"
+
+source $cmdpath/../lib/args-helper
+
+DR_Command="${AH_PARAMS[0]}"
+DR_CheckInterval="${AH_OPTIONS['-i']}"
+DR_LogFile="${AH_OPTIONS['-l']}"
+DR_CommandLogFile="${AH_OPTIONS['-c']}"
+DR_PidFile="${AH_OPTIONS['-p']}"
+DR_WithoutDeamon="${AH_SWITCHS['-w']}"
+
+if [ -z "$DR_Command" ]; then
+    echo "Args: command must be input."
+    exit 1
+fi
+if [ -z "$DR_CheckInterval" ] || [ "0" == "$DR_CheckInterval" ]; then
+    DR_CheckInterval=10
+fi
+if [ -z "$DR_LogFile" ]; then
+    DR_LogFile="/dev/null"
+fi
+if [ -z "$DR_CommandLogFile" ]; then
+    DR_CommandLogFile="/dev/null"
+fi
+if [ -z "$DR_PidFile" ]; then
+    DR_PidFile="./$cmdname.pid"
+fi
+
+if [ -z "$DR_WithoutDeamon" ]; then
+    nohup $0 "$@" -w > $DR_LogFile 2>&1 & echo Start with deamon mode.
+    exit 0
+fi
+
+function GetPID(){
+    cat $DR_PidFile
+}
+
+function IsCommandRunning(){
+    if [ "2" == "$(ps -p $(GetPID) | wc -l)" ]; then
+        echo yes
+    else
+        echo no
+    fi
+}
+
+function RunCommand(){
+    touch $DR_CommandLogFile
+    touch $DR_PidFile
+    nohup $DR_Command > $DR_CommandLogFile 2>&1 & echo $! > $DR_PidFile
+    sleep 0.5
+    if [ "yes" == "$(IsCommandRunning)" ]; then
+        echo Run command \"$DR_Command\" success.
+    else
+        echo Run command fail.
+    fi
+}
+
+function CheckAndRun(){
+    if [ "yes" == "$(IsCommandRunning)" ]; then
+        echo "Command already running with pid $(GetPID)".
+    else
+        RunCommand
+    fi
+}
+
+while [ 1 -eq 1 ]; do
+    CheckAndRun
+    sleep $DR_CheckInterval
+done
