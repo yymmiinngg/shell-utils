@@ -46,7 +46,7 @@ if [ -z "$DR_PidFile" ]; then
 fi
 
 if [ -z "$DR_WithoutDeamon" ]; then
-    nohup $0 "$@" -w > $DR_LogFile 2>&1 & echo Start with deamon mode.
+    nohup $0 "$@" -w >> $DR_LogFile 2>&1 & echo Start with deamon mode.
     exit 0
 fi
 
@@ -65,10 +65,10 @@ function IsCommandRunning(){
 function RunCommand(){
     touch $DR_CommandLogFile
     touch $DR_PidFile
-    nohup $DR_Command > $DR_CommandLogFile 2>&1 & echo $! > $DR_PidFile
+    nohup $DR_Command >> $DR_CommandLogFile 2>&1 & echo $! > $DR_PidFile
     sleep 0.5
     if [ "yes" == "$(IsCommandRunning)" ]; then
-        echo Run command \"$DR_Command\" success.
+        echo Run command \"$DR_Command\" success, with pid $(GetPID).
     else
         echo Run command fail.
     fi
